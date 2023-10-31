@@ -1,0 +1,65 @@
+#!/usr/bin/env groovy
+
+def deployBySSH() {
+    withCredentials([sshUserPrivateKey(credentialsId: 'jenkins.ssh', keyFileVariable: 'sshIdentity')]) {
+        def SSH_REMOTE = [
+            name: 'ddz-server',
+            user: 'ubuntu',
+            host: '120.92.140.86',
+            allowAnyHosts: true,
+            port: 20860,
+            identityFile: sshIdentity,
+        ]
+        def SSH_COMMAND = """cd /data/ddz/app \
+            && docker-compose down \
+            && docker-compose pull \
+            && docker-compose up -d
+        """
+        sshCommand remote: SSH_REMOTE, command: SSH_COMMAND
+    }
+}
+
+pipeline {
+    agent {
+        label 'os:linux'
+    }
+    options {
+        skipDefaultCheckout()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(
+            daysToKeepStr: '15',
+            artifactNumToKeepStr: '20'
+        ))
+        ansiColor('xterm')
+    }
+    parameters {
+        booleanParam(name: 'AUTO_DEPLOY',
+                defaultValue: true,
+                description: 'When checked, will automatically deploy to dev environment.')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                script {
+                    def registry = 'hub-cn-shanghai-2.kce.ksyun.com'
+                    def credentialsId = 'plm.ksyun.kce'
+                    def dockerImage = dockerBuild registry: registry, credentialsId: credentialsId, project: 'shiyou-plm-ai', repo: 'ddz-server', push: true
+                    echo "Built docker image: ${dockerImage}"
+                }
+            }
+        }
+        stage('Deploy') {
+            when {
+                expression { return params.AUTO_DEPLOY }
+            }
+            steps {
+                deployBySSH()
+            }
+        }
+    }
+}
