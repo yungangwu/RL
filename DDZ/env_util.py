@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from game_util import choose_cards
 
 SUITS = ['♠', '♥', '♦', '♣']
 RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2']
@@ -418,7 +419,7 @@ class Player:
             last_move_type=last_move_type,
             last_move=last_move,
             hand_cards=self.hand_cards,
-            model=self.play_model,
+            mode=self.play_model,
             RL=self.RL,
             agent=self.agent,
             game=self.game,
