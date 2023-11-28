@@ -1,68 +1,59 @@
 import random
 from random import choice
+from env_util import Game, Player
 
 
 class DouDizhu:
-    def __init__(self):
-        self.deck = cards.copy()
-        self.players = ['Player1', 'Player2', 'Player3']
-        self.hands = {player: [] for player in self.players}
-        self.played_cards = []
-        self.player_played_cards = {player: [] for player in self.players}
+    def __init__(self, agents, rl):
+        self.game = Game(agents, rl)
 
-        self.last_move_type = 'start'
-        self.last_move = 'start'
+    def reset(self, landlord_id):
+        self.game.game_start(landlord_id)
+        return self.get_next_state(landlord_id)
 
-    def deal_cards(self, landlord_num=None):
-        random.shuffle(self.deck)
-        remain_landlord_cards = self.deck[-3:]
-        distribute_cards = self.deck[:-3]
-        for _ in range(len(distribute_cards)):
-            for player in self.players:
-                card = distribute_cards.pop(0)
-                self.hands[player].append(card)
-        if landlord_num is None:
-            self.landlord_num = random.randint(0, 2)
+    def get_next_state(self, cur_player_idx):
+        cur_player: Player = self.game.players[cur_player_idx]
+        cur_hands = cur_player.hand_cards
+        last_move_type = self.game.last_move_type
+        last_move = self.game.last_move
+        return (cur_hands, last_move_type, last_move, cur_player_idx)
+
+    def step(self, cur_player: int, action):
+        cur_game_player: Player = self.game.players[cur_player]
+        self.last_move_type, self.last_move, self.end, self.yaobuqi = cur_game_player.play(
+            self.game.last_move_type, self.game.last_move,
+            self.game.play_records, action)
+        if self.yaobuqi:
+            self.game.yaobuqis.append(cur_player)
         else:
-            self.landlord_num = landlord_num
-        self.landlord_player = self.players[self.landlord_num]
-        self.hands[self.landlord_player] += remain_landlord_cards
+            self.game.yaobuqis = []
 
-    def get_state(self, player):
-        return self.hands[player]
+        if len(self.game.yaobuqis) == 2:
+            self.game.yaobuqis = []
+            self.game.last_move_type = self.game.last_move = "start"
 
-    def step(self, player, action):
-        played_card = self.hands[player].pop(action)
+        done = False
+        if self.game.game_end:
+            self.game.play_records.winner = cur_player
+            done = True
 
-        self.player_played_cards[player].append(played_card)
-        self.played_cards.append(played_card)
-        done = self.is_done()
+        next_player = cur_player + 1
+        if next_player > 2:
+            self.game.play_round += 1
+            next_player = 0
+
+        next_state = self.get_next_state(next_player)
+        reward = self.get_reward(cur_player, done)
+        return next_state, reward, done, next_player
+
+    def get_reward(self, cur_player, done):
         reward = [0, 0, 0]
         if done:
-            if player == self.landlord_player:
-                reward = [-1, -1, -1]
-                reward[self.landlord_num] = 2
-            else:
-                reward = [1, 1, 1]
-                reward[self.landlord_num] = -2
+            reward[cur_player] = 1
+            return reward
+        else:
+            return reward
 
-        # state include hands cards, played cards
-        player_remain_cards = self.hands[player]
-        next_player = self.players[(self.players.index(player) + 1) %
-                                   len(self.players)]
-
-        state = (self.hands, self.played_cards, self.player_played_cards)
-
-        return state, reward, done, next_player
-
-    def get_legal_action(self, player):
-        cur_desk_cards = self.played_cards[-1]
-
-    def get_next_moves(self, player):
-        next_move_type, next_move = get_moves(self.last_move_type,
-                                              self.last_move,
-                                              self.player_played_cards[player])
-
-    def is_done(self):
-        done = all(len(hand) == 0 for hand in self.hands.values())
-        return done
+    def get_action(self, cur_player_id):
+        next_moves_type, next_moves = self.game.get_next_moves(cur_player_id)
+        return (next_moves_type, next_moves)

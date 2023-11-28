@@ -9,7 +9,7 @@ cards = cards + ['joker', 'JOKER']
 
 
 class Game:
-    def __init__(self, agent, RL=None) -> None:
+    def __init__(self, agents, RL=None) -> None:
         self.cards = Cards()
         self.game_end = False
         self.last_move_type = "start"
@@ -18,17 +18,22 @@ class Game:
         self.cur_player_id = 0
         self.yaobuqis = []
 
-        self.models = agent.model
+        self.mode = 'random'
 
-        self.agent = agent
+        self.agents = agents
         self.RL = RL
 
-    def game_start(self, train, landlord_id=None):
+    def game_start(self, landlord_id=None):
         self.players = []
         for player_idx in range(1, 4):
-            self.players.append(
-                Player(player_idx, self.models[player_idx], self.agent, self,
-                       self.RL))
+            agent = self.agents[player_idx - 1]
+            if agent is None:
+                self.players.append(
+                    Player(player_idx, self.mode, agent, self, self.RL))
+            else:
+                mode = "RL"
+                self.players.append(
+                    Player(player_idx, mode, agent, self, self.RL))
 
         self.play_records = PlayRecords()
 
@@ -54,14 +59,18 @@ class Game:
         for player_cards in players_cards:
             player_cards.sort(key=lambda x: x.rank)
 
+        self.players[0].hand_cards = players_cards[0]
+        self.players[1].hand_cards = players_cards[1]
+        self.players[2].hand_cards = players_cards[2]
+
         self.play_records.player1_hands = players_cards[0]
         self.play_records.player2_hands = players_cards[1]
         self.play_records.player3_hands = players_cards[2]
 
-    def get_next_moves(self, ):
-        next_moves_type, next_moves = self.players[
-            self.cur_player_id].get_moves(self.last_move_type, self.last_move,
-                                          self.play_records)
+    def get_next_moves(self, cur_player_id):
+        cur_player: Player = self.players[cur_player_id]
+        next_moves_type, next_moves = cur_player.get_moves(
+            self.last_move_type, self.last_move, self.play_records)
         return next_moves_type, next_moves
 
     def get_next_move(self, action):
@@ -413,9 +422,10 @@ class Player:
         return self.next_moves_type, self.next_moves
 
     def play(self, last_move_type, last_move, player_records, action):
+        next_moves_type, next_moves = action
         self.next_move_type, self.next_move = choose_cards(
-            next_moves_type=self.next_moves_type,
-            next_moves=self.next_moves,
+            next_moves_type=next_moves_type,
+            next_moves=next_moves,
             last_move_type=last_move_type,
             last_move=last_move,
             hand_cards=self.hand_cards,
