@@ -1,6 +1,7 @@
 import random
 from random import choice
 from env_util import Game, Player
+from util import MoveType
 
 
 class DouDizhu:
@@ -20,9 +21,11 @@ class DouDizhu:
 
     def step(self, cur_player: int, action):
         cur_game_player: Player = self.game.players[cur_player]
-        self.last_move_type, self.last_move, self.end, self.yaobuqi = cur_game_player.play(
+        cur_move_type, cur_move, self.game.game_end, self.yaobuqi = cur_game_player.play(
             self.game.last_move_type, self.game.last_move,
             self.game.play_records, action)
+
+        self.game.last_move_type, self.game.last_move = cur_move_type, cur_move
         if self.yaobuqi:
             self.game.yaobuqis.append(cur_player)
         else:
@@ -30,7 +33,7 @@ class DouDizhu:
 
         if len(self.game.yaobuqis) == 2:
             self.game.yaobuqis = []
-            self.game.last_move_type = self.game.last_move = "start"
+            self.game.last_move_type = self.game.last_move = MoveType.start
 
         done = False
         if self.game.game_end:
@@ -44,7 +47,7 @@ class DouDizhu:
 
         next_state = self.get_next_state(next_player)
         reward = self.get_reward(cur_player, done)
-        return next_state, reward, done, next_player
+        return next_state, reward, done, next_player, cur_move_type, cur_move
 
     def get_reward(self, cur_player, done):
         reward = [0, 0, 0]

@@ -1,22 +1,24 @@
 import random
 import numpy as np
 from game_util import choose_cards
+from util import MoveType
 
 SUITS = ['♠', '♥', '♦', '♣']
-RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2']
+RANKS = ['3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A', '2']
 cards = [suit + rank for suit in SUITS for rank in RANKS]
 cards = cards + ['joker', 'JOKER']
 
 
 class Game:
     def __init__(self, agents, RL=None) -> None:
-        self.cards = Cards()
+        self.cards = Cards(cards)
         self.game_end = False
-        self.last_move_type = "start"
-        self.last_move = "start"
+        self.last_move_type = MoveType.start
+        self.last_move = MoveType.start
         self.play_round = 1
         self.cur_player_id = 0
         self.yaobuqis = []
+        self.players = []
 
         self.mode = 'random'
 
@@ -24,8 +26,7 @@ class Game:
         self.RL = RL
 
     def game_start(self, landlord_id=None):
-        self.players = []
-        for player_idx in range(1, 4):
+        for player_idx in range(3):
             agent = self.agents[player_idx - 1]
             if agent is None:
                 self.players.append(
@@ -38,14 +39,15 @@ class Game:
         self.play_records = PlayRecords()
 
         if landlord_id is None:
-            self.landlord_id = random.randint(1, 3)
+            self.landlord_id = random.randint(0, 2)
         else:
             self.landlord_id = landlord_id
 
-        self.game_init(self, )
+        self.game_init()
 
     def game_init(self, ):
-        desk_cards = np.random.shuffle(self.cards.cards)
+        np.random.shuffle(self.cards.cards)
+        desk_cards = self.cards.cards
 
         remain_landlord_cards = desk_cards[-3:]
         distribute_cards = desk_cards[:-3]
@@ -68,6 +70,9 @@ class Game:
         self.play_records.player3_hands = players_cards[2]
 
     def get_next_moves(self, cur_player_id):
+        '''
+            获取所有的候选牌面
+        '''
         cur_player: Player = self.players[cur_player_id]
         next_moves_type, next_moves = cur_player.get_moves(
             self.last_move_type, self.last_move, self.play_records)
@@ -88,8 +93,8 @@ class Game:
 
             if len(self.yaobuqis) == 2:
                 self.yaobuqis = []
-                self.last_move_type = 'start'
-                self.last_move = 'start'
+                self.last_move_type = MoveType.start
+                self.last_move = MoveType.start
 
             if self.game_end:
                 self.play_records.winner = self.cur_player_id + 1
@@ -124,6 +129,22 @@ class Cards:
                 cur_card.name = card[1]
                 cur_card.suit = card[0]
                 cur_card.rank = 13
+            elif card[1] == 'K':
+                cur_card.name = card[1]
+                cur_card.suit = card[0]
+                cur_card.rank = 11
+            elif card[1] == 'Q':
+                cur_card.name = card[1]
+                cur_card.suit = card[0]
+                cur_card.rank = 10
+            elif card[1] == 'J':
+                cur_card.name = card[1]
+                cur_card.suit = card[0]
+                cur_card.rank = 9
+            elif card[1] == 'T':
+                cur_card.name = card[1]
+                cur_card.suit = card[0]
+                cur_card.rank = 8
             else:
                 cur_card.name = card[1]
                 cur_card.suit = card[0]
@@ -164,20 +185,6 @@ class PlayRecords:
         self.winner = -1
 
         self.cur_player = 1
-
-
-class MoveType:
-    dan: int = 0
-    dui: int = 1
-    san: int = 2
-    san_dai_yi: int = 3
-    san_dai_er: int = 4
-    si_dai_er: int = 5
-    si_dai_er_dui: int = 6
-    shunzi: int = 7
-    bomb: int = 8
-    start: int = 9
-    last: int = 10
 
 
 class Move:
@@ -361,7 +368,7 @@ class Move:
                 self.next_moves.append(move)
                 self.next_moves_type.append(cur_move_type)
 
-    def get_cards_combinations(cards):
+    def get_cards_combinations(self, cards):
         combinations = []
         for i in range(len(cards)):
             for j in range(i + 1, len(cards)):
@@ -386,7 +393,7 @@ class Player:
 
     def record_move(self, player_records: PlayRecords):
         player_records.cur_player = self.player_id
-        if self.next_move_type in ["yaobuqi", "buyao"]:
+        if self.next_move_type == MoveType.yaobuqi:
             self.next_move = self.next_move_type
             player_records.desk_record.append(
                 [self.player_id, self.next_move_type])
@@ -395,15 +402,15 @@ class Player:
             for card in self.next_move:
                 self.hand_cards.remove(card)
 
-        if self.player_id == 1:
+        if self.player_id == 0:
             player_records.player1_hands = self.hand_cards
             player_records.legal_moves1.append(self.next_moves)
             player_records.played_record1.append(self.next_move)
-        elif self.player_id == 2:
+        elif self.player_id == 1:
             player_records.player2_hands = self.hand_cards
             player_records.legal_moves2.append(self.next_moves)
             player_records.played_record2.append(self.next_move)
-        elif self.player_id == 3:
+        elif self.player_id == 2:
             player_records.player3_hands = self.hand_cards
             player_records.legal_moves3.append(self.next_moves)
             player_records.played_record3.append(self.next_move)
@@ -423,7 +430,7 @@ class Player:
 
     def play(self, last_move_type, last_move, player_records, action):
         next_moves_type, next_moves = action
-        self.next_move_type, self.next_move = choose_cards(
+        next_move_type, next_move = choose_cards(
             next_moves_type=next_moves_type,
             next_moves=next_moves,
             last_move_type=last_move_type,
@@ -435,11 +442,12 @@ class Player:
             game=self.game,
             player_id=self.player_id,
             action=action)
+        self.next_move_type, self.next_move = next_move_type, next_move
         desk_end_state = self.record_move(player_records)
         yaobuqi = False
-        if self.next_move_type in ["yaobuqi", "buyao"]:
+        if self.next_move_type == MoveType.yaobuqi:
             yaobuqi = True
             self.next_move_type = last_move_type
             self.next_move = last_move
 
-        return self.next_move_type, self.next_move, desk_end_state, yaobuqi
+        return next_move_type, next_move, desk_end_state, yaobuqi
