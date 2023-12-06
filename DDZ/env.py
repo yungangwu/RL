@@ -1,5 +1,13 @@
 import random
 from random import choice
+
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from env_util import Game, Player
 from util import MoveType
 
@@ -7,23 +15,43 @@ from util import MoveType
 class DouDizhu:
     def __init__(self, agents, rl):
         self.game = Game(agents, rl)
+        self.bomb_num = 0
 
     def reset(self, landlord_id):
         self.game.game_start(landlord_id)
         return self.get_next_state(landlord_id)
 
     def get_next_state(self, cur_player_idx):
+        '''
+
+        '''
         cur_player: Player = self.game.players[cur_player_idx]
-        cur_hands = cur_player.hand_cards
+        cur_hands = cur_player.hand_cards[:]
         last_move_type = self.game.last_move_type
         last_move = self.game.last_move
-        return (cur_hands, last_move_type, last_move, cur_player_idx)
+
+        up_player_idx, down_player_idx = self.get_up_down_player_idx(
+            cur_player_idx)
+        up_player_cards = self.game.players[up_player_idx].hand_cards
+        down_player_cards = self.game.players[down_player_idx].hand_cards
+
+        up_player_cards_num = len(up_player_cards)
+        down_player_cards_num = len(down_player_cards)
+
+        landlord_id = self.game.landlord_id
+
+        return (cur_hands, last_move_type, last_move, up_player_cards_num,
+                down_player_cards_num, landlord_id, self.bomb_num,
+                self.game.play_records.desk_record[:], cur_player_idx)
 
     def step(self, cur_player: int, action):
         cur_game_player: Player = self.game.players[cur_player]
         cur_move_type, cur_move, self.game.game_end, self.yaobuqi = cur_game_player.play(
             self.game.last_move_type, self.game.last_move,
             self.game.play_records, action)
+
+        if cur_move_type == MoveType.bomb:
+            self.bomb_num += 1
 
         self.game.last_move_type, self.game.last_move = cur_move_type, cur_move
         if self.yaobuqi:
@@ -40,10 +68,9 @@ class DouDizhu:
             self.game.play_records.winner = cur_player
             done = True
 
-        next_player = cur_player + 1
-        if next_player > 2:
+        _, next_player = self.get_up_down_player_idx(cur_player)
+        if next_player == 0:
             self.game.play_round += 1
-            next_player = 0
 
         next_state = self.get_next_state(next_player)
         reward = self.get_reward(cur_player, done)
@@ -60,3 +87,15 @@ class DouDizhu:
     def get_action(self, cur_player_id):
         next_moves_type, next_moves = self.game.get_next_moves(cur_player_id)
         return (next_moves_type, next_moves)
+
+    def get_up_down_player_idx(self, cur_player_idx):
+        up_player_idx = cur_player_idx - 1
+        down_player_idx = cur_player_idx + 1
+
+        if up_player_idx < 0:
+            up_player_idx = 2
+
+        if down_player_idx > 2:
+            down_player_idx = 0
+
+        return up_player_idx, down_player_idx

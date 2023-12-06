@@ -1,7 +1,15 @@
 import random
 import numpy as np
+
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+from util import MoveType, Card
 from game_util import choose_cards
-from util import MoveType
 
 SUITS = ['♠', '♥', '♦', '♣']
 RANKS = ['3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A', '2']
@@ -152,18 +160,6 @@ class Cards:
             cards.append(cur_card)
 
         return cards
-
-
-class Card:
-    name: str = None
-    suit: str = None
-    rank: int = None
-
-    def bigger_than(self, card_instance):
-        if self.rank > card_instance.rank:
-            return True
-        else:
-            return False
 
 
 class PlayRecords:
@@ -393,7 +389,7 @@ class Player:
 
     def record_move(self, player_records: PlayRecords):
         player_records.cur_player = self.player_id
-        if self.next_move_type == MoveType.yaobuqi:
+        if self.next_move_type == MoveType.yaobuqi or self.next_move_type == MoveType.buyao:
             self.next_move = self.next_move_type
             player_records.desk_record.append(
                 [self.player_id, self.next_move_type])
@@ -445,7 +441,7 @@ class Player:
         self.next_move_type, self.next_move = next_move_type, next_move
         desk_end_state = self.record_move(player_records)
         yaobuqi = False
-        if self.next_move_type == MoveType.yaobuqi:
+        if self.next_move_type == MoveType.yaobuqi or self.next_move_type == MoveType.buyao:
             yaobuqi = True
             self.next_move_type = last_move_type
             self.next_move = last_move
