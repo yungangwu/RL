@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "selfPlay.py", line 97, in <module>
+    next_state, done, winner = env.step(action, players[0].agent_name)
+  File "/home/yg/code/test/ReinforceLearning/wuziqi/env/wuziqi.py", line 29, in step
+    self.board[row][col] = player.value
+AttributeError: 'str' object has no attribute 'value'
