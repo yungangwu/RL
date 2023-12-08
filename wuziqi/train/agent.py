@@ -96,8 +96,7 @@ class DQNAgent:
 
         q_values = self.local_network(states).gather(1, actions.unsqueeze(1))
 
-        next_q_values = self.target_network(next_states).detach().max(
-            1)[0].unsqueeze(1)
+        next_q_values = self.target_network(next_states).detach().max(1)[0].unsqueeze(1)
 
         target_q_values = rewards + (gamma * next_q_values * (1 - dones))
 
