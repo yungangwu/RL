@@ -35,7 +35,7 @@ class DQNAgent:
                  batch_size=32,
                  gamma=0.95,
                  lr=0.001,
-                 eps=1.0):
+                 eps=0.9):
         self.epsilon = eps
         self.state_size = state_size
         self.action_size = action_size
@@ -64,7 +64,7 @@ class DQNAgent:
         state = torch.FloatTensor(state).unsqueeze(0)
         q_values = self.local_network(state).squeeze().detach().numpy()
         q_values[~legal_moves] = -np.inf
-        if random.random() > self.epsilon:
+        if np.random.uniform() < self.epsilon:
             action = np.argmax(q_values)
         else:
             action = np.random.choice(np.flatnonzero(legal_moves))

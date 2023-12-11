@@ -4,6 +4,7 @@ import wandb
 import os
 import torch
 import sys
+import copy
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from agent import DQNAgent, RandomAgent
@@ -69,13 +70,6 @@ if __name__ == '__main__':
                       batch_size=32,
                       gamma=0.95,
                       lr=0.001)
-    # agent2 = DQNAgent(state_size,
-    #                   action_size,
-    #                   Player.WHITE,
-    #                   buffer_size=2000,
-    #                   batch_size=32,
-    #                   gamma=0.95,
-    #                   lr=0.00001)
 
     agent2 = RandomAgent(env)
 
@@ -87,6 +81,7 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         history = []
 
+        record = []
         players = [agent1, agent2]
         np.random.shuffle(players)
         state = env.reset()
@@ -97,6 +92,7 @@ if __name__ == '__main__':
 
             next_state, reward, done, winner = env.step(action, players[0].agent_name)
             history.append((state, action, reward, next_state))
+            record.append(copy.deepcopy(env.board))
 
             agent1.push(state, action, reward, next_state, done)
 
@@ -105,6 +101,7 @@ if __name__ == '__main__':
 
             players.reverse()
             state = next_state
+
         if agent1.loss:
             print('1loss: ', agent1.loss.item())
             # wandb.log({
