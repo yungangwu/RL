@@ -71,6 +71,8 @@ if __name__ == '__main__':
                       gamma=0.95,
                       lr=0.001)
 
+    agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_3460000')
+
     agent2 = RandomAgent(env)
 
     # num_episodes = 10000000
@@ -79,6 +81,7 @@ if __name__ == '__main__':
     save_epoch = 5000
     update_epoch = 200
     for epoch in range(num_epochs):
+        print('epoch', epoch)
         history = []
 
         record = []
@@ -97,6 +100,7 @@ if __name__ == '__main__':
             agent1.push(state, action, reward, next_state, done)
 
             if done:
+                print('reward, winner', reward, winner)
                 break
 
             players.reverse()
@@ -112,9 +116,9 @@ if __name__ == '__main__':
             experiences = agent1.memory.sample(agent1.batch_size)
             agent1.learn(experiences, agent1.gamma)
 
-            if epoch % 10 == 0:
+            if epoch % 200 == 0:
                 agent1.update_epsilon()
-                print('执行一次update_epsilon')
+                print('执行一次update_epsilon', agent1.epsilon)
 
             if epoch % update_epoch == 0:
                 agent1.update_target_network()
