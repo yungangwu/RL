@@ -41,9 +41,7 @@ class AgentNet(Agent):
                 minor_cards = self.get_minor_cards(state, card_count, cards)
                 cards.extend(minor_cards)
         return self.get_card_from_handcards(cards)
- 
+
 
     def get_minor_cards(self, state, card_count, major_cards):
         return self.minor_brain.evaluate(state, card_count, major_cards)
-
-   

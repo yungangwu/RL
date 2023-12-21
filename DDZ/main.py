@@ -78,7 +78,7 @@ for i_episode in range(MAX_EPISODE):
         (cur_hands_encode, last_move_encode, up_player_cards_num_encode,
          down_player_cards_num_encode, landlord_id_encode, bomb_num_encode))
 
-    print(state_encode)
+    state_encode_tensor = torch.from_numpy(state_encode)
 
     # desk_record 编码
     record_encode_data = []
@@ -91,10 +91,10 @@ for i_episode in range(MAX_EPISODE):
 
     record_encode_data = np.array(record_encode_data)
     record_encode_tensor = torch.Tensor(record_encode_data).unsqueeze(0)
-    print(record_encode_tensor.shape)
     record_encode_shape = record_encode_tensor.shape
-    lstm_encode = LSTMEncode(record_encode_shape[-1])
 
+    lstm_encode = LSTMEncode(record_encode_shape[-1])
     record_hidden_encode = lstm_encode.get_hidden_state(record_encode_tensor)
 
-    print('record_hidden_encode', record_hidden_encode.shape)
+    record_hidden_encode_tensor = torch.squeeze(record_hidden_encode)
+    feature_encode_tensor = torch.cat((state_encode_tensor, record_hidden_encode_tensor))

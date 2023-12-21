@@ -26,6 +26,7 @@ class DeepQNetwork:
         self.learn_step_counter = 0
 
         self.encode_instance = Encode()
+        self.lstm_encode = LSTMEncode(63)
 
         self.eval_net = Net(n_actions, n_features)
         self.target_net = Net(n_actions, n_features)
@@ -81,6 +82,46 @@ class DeepQNetwork:
         loss.backward()
         self.optimizer.step()
 
-    def encode_state(self,):
+    def encode_state(self, s):
+        (cur_hands, last_move_type, last_move, up_player_cards_num,
+        down_player_cards_num, landlord_id, bomb_num, desk_record,
+        cur_player_idx) = s
+
+        cur_hands_encode = self.encode_instance.encode_hand_cards(cur_hands)
+        last_move_encode = self.encode_instance.encode_last_move(last_move)
+        up_player_cards_num_encode = self.encode_instance.encode_other_player_cards_num(
+            up_player_cards_num)
+        down_player_cards_num_encode = self.encode_instance.encode_other_player_cards_num(
+            down_player_cards_num)
+        landlord_id_encode = self.encode_instance.encode_landlord(landlord_id)
+        bomb_num_encode = self.encode_instance.encode_bomb_num(bomb_num)
+
+        state_encode = np.concatenate(
+            (cur_hands_encode, last_move_encode, up_player_cards_num_encode,
+            down_player_cards_num_encode, landlord_id_encode, bomb_num_encode))
+
+        state_encode_tensor = torch.from_numpy(state_encode)
+        record_hidden_encode_tensor = self.get_desk_record_encode(desk_record)
+        feature_encode_tensor = torch.cat((state_encode_tensor, record_hidden_encode_tensor))
+        return feature_encode_tensor
+
+    def get_desk_record_encode(self, desk_record):
+        # desk_record 编码
+        record_encode_data = []
+        for round_record in desk_record:
+            player_id, played_cards = round_record
+            player_id_encode = self.encode_instance.encode_cur_player_id(player_id)
+            player_cards_encode = self.encode_instance.encode_hand_cards(played_cards)
+            record_encode = np.concatenate((player_id_encode, player_cards_encode))
+            record_encode_data.append(record_encode)
+
+        record_encode_data = np.array(record_encode_data)
+        record_encode_tensor = torch.Tensor(record_encode_data).unsqueeze(0)
+
+        record_hidden_encode = self.lstm_encode.get_hidden_state(record_encode_tensor)
+
+        record_hidden_encode_tensor = torch.squeeze(record_hidden_encode)
+        return record_hidden_encode_tensor
+
+    def encode_actions(self, actions):
         pass
-    

@@ -14,9 +14,9 @@ from util.common import Player
 
 
 class RandomAgent:
-    def __init__(self, env):
+    def __init__(self, env, agent_name):
         self.env = env
-        self.agent_name = Player.WHITE
+        self.agent_name = agent_name
 
     def act(self, state, legal_moves):
         '''
@@ -115,6 +115,7 @@ class DQNAgent:
 
     def load_model(self, model_path):
         self.local_network.load_state_dict(torch.load(model_path))
+        self.target_network.load_state_dict(torch.load(model_path))
 
     def save_model(self, model_path):
         torch.save(self.local_network.state_dict(), model_path)

@@ -71,9 +71,17 @@ if __name__ == '__main__':
                       gamma=0.95,
                       lr=0.001)
 
-    agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_3460000')
+    agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_710000/model1.pth')
 
-    agent2 = RandomAgent(env)
+    agent2 = DQNAgent(state_size,
+                      action_size,
+                      Player.WHITE,
+                      buffer_size=4000,
+                      batch_size=32,
+                      gamma=0.95,
+                      lr=0.001)
+
+    agent2.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_710000/model2.pth')
 
     # num_episodes = 10000000
     max_steps = 1000
@@ -89,21 +97,25 @@ if __name__ == '__main__':
         np.random.shuffle(players)
         state = env.reset()
 
+        player_id = 0
         for step in range(max_steps):
             legal_moves = env.get_legal_moves()
-            action = players[0].act(state, legal_moves)
+            action = players[player_id].act(state, legal_moves)
 
-            next_state, reward, done, winner = env.step(action, players[0].agent_name)
+            next_state, reward, done, winner = env.step(action, players[player_id].agent_name)
             history.append((state, action, reward, next_state))
             record.append(copy.deepcopy(env.board))
 
-            agent1.push(state, action, reward, next_state, done)
+            players[player_id].push(state, action, reward, next_state, done)
 
             if done:
                 print('reward, winner', reward, winner)
                 break
 
-            players.reverse()
+            player_id += 1
+            if player_id > 1:
+                player_id = 0
+
             state = next_state
 
         if agent1.loss:
@@ -111,6 +123,8 @@ if __name__ == '__main__':
             # wandb.log({
             #     "loss": agent1.loss.item(),
             # })
+        elif agent2.loss:
+            print('2loss: ', agent2.loss.item())
 
         if len(agent1.memory) > agent1.batch_size:
             experiences = agent1.memory.sample(agent1.batch_size)
@@ -127,8 +141,26 @@ if __name__ == '__main__':
                 save_model_path = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/' + f'epoch_{epoch}'
                 if not os.path.exists(save_model_path):
                     os.makedirs(save_model_path)
-                model_path = save_model_path + '/model.pth'
+                model_path = save_model_path + '/model1.pth'
                 agent1.save_model(model_path)
+
+        if len(agent2.memory) > agent2.batch_size:
+            experiences = agent2.memory.sample(agent2.batch_size)
+            agent2.learn(experiences, agent2.gamma)
+
+            if epoch % 200 == 0:
+                agent2.update_epsilon()
+                print('执行一次update_epsilon', agent2.epsilon)
+
+            if epoch % (update_epoch+1800) == 0:
+                agent2.update_target_network()
+
+            if epoch % save_epoch == 0:
+                save_model_path = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/' + f'epoch_{epoch}'
+                if not os.path.exists(save_model_path):
+                    os.makedirs(save_model_path)
+                model_path = save_model_path + '/model2.pth'
+                agent2.save_model(model_path)
 
         # if len(agent2.memory) > agent2.batch_size:
         #     experiences = agent2.memory.sample(agent2.batch_size)

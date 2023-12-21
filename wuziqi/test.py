@@ -5,7 +5,7 @@ import wandb
 import os
 from collections import deque
 from env.wuziqi import GameState
-from train.agent import DQNAgent
+from train.agent import DQNAgent, RandomAgent
 from util.common import Player
 
 # 定义测试函数
@@ -33,7 +33,7 @@ def test(agent1, agent2, num_games):
             # 由agent1选择动作并执行
             legal_moves = env.get_legal_moves()
             action = cur_agent1.act(state, legal_moves)
-            next_state, done, winner = env.step(action, cur_agent1.agent_name)
+            next_state, _, done, winner = env.step(action, cur_agent1.agent_name)
             # cur_agent1.memorize(state, action, reward, next_state, done)
             state = next_state
 
@@ -43,9 +43,12 @@ def test(agent1, agent2, num_games):
             # 由agent2选择动作并执行
             legal_moves = env.get_legal_moves()
             action = cur_agent2.act(state, legal_moves)
-            next_state, done, winner = env.step(action, cur_agent2.agent_name)
+            next_state, _, done, winner = env.step(action, cur_agent2.agent_name)
             # cur_agent2.memorize(state, action, reward, next_state, done)
             state = next_state
+
+            if done:
+                break
 
         # 更新得分
         if winner == Player.BLACK.value:
@@ -66,9 +69,10 @@ state_size = env.state_size
 action_size = env.action_size
 # 创建DQNAgent实例并加载模型
 agent1 = DQNAgent(state_size, action_size, Player.BLACK, buffer_size=2000, batch_size=32, gamma=0.95, lr=0.001)
-agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_7620000/model.pth')
+agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_0/model2.pth')
 agent2 = DQNAgent(state_size, action_size, Player.WHITE, buffer_size=2000, batch_size=32, gamma=0.95, lr=0.001)
-agent2.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_5000/model.pth')
+agent2.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_2645000/model1.pth')
+# agent2 = RandomAgent(env, agent_name=Player.WHITE)
 # path1 = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_5000/model.pth'
 # for k in range(10000,950000,5000):
 #     path2 = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_' + f'{k}/model.pth'
