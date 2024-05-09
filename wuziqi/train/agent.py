@@ -3,7 +3,6 @@ import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import numpy
 import numpy as np
 from train.model import QNetwork
 from util.buffer import ReplayBuffer

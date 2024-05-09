@@ -3,10 +3,21 @@ import random
 import time
 import wandb
 import os
+import numpy as np
 from collections import deque
 from env.wuziqi import GameState
 from train.agent import DQNAgent, RandomAgent
 from util.common import Player
+
+
+def setup_seed(seed):
+     torch.manual_seed(seed)
+     torch.cuda.manual_seed_all(seed)
+     np.random.seed(seed)
+     random.seed(seed)
+     torch.backends.cudnn.deterministic = True
+# 设置随机数种子
+setup_seed(20)
 
 # 定义测试函数
 def test(agent1, agent2, num_games):
@@ -66,12 +77,12 @@ def test(agent1, agent2, num_games):
 board_size = 15
 env = GameState(board_size)
 state_size = env.state_size
-action_size = env.action_size
+action_size = env.action_sizez
 # 创建DQNAgent实例并加载模型
 agent1 = DQNAgent(state_size, action_size, Player.BLACK, buffer_size=2000, batch_size=32, gamma=0.95, lr=0.001)
-agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_0/model2.pth')
+agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_655000/model1.pth')
 agent2 = DQNAgent(state_size, action_size, Player.WHITE, buffer_size=2000, batch_size=32, gamma=0.95, lr=0.001)
-agent2.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_2645000/model1.pth')
+agent2.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_655000/model2.pth')
 # agent2 = RandomAgent(env, agent_name=Player.WHITE)
 # path1 = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_5000/model.pth'
 # for k in range(10000,950000,5000):

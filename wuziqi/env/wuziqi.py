@@ -40,11 +40,11 @@ class GameState:
 
     def get_reward(self, player, row, col):
         if self.check_num_in_board(player, row, col, 5):
-            return 100
+            return 5
 
         # 检查四子连珠
         if self.check_num_in_board(player, row, col, 4):
-            return 10
+            return 2
 
         # 检查三子连珠
         if self.check_num_in_board(player, row, col, 3):
