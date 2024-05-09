@@ -1,0 +1,5 @@
+*
+!app
+!nginx
+!uwsgi.ini
+!requirements.txt
