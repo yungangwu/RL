@@ -25,7 +25,7 @@ class GomokuEnv(gym.Env):
         reward = 0
         if done:
             if winner == self.current_player:
-                reward = -1
+                reward = 1
             else:
                 reward = -1
 
@@ -116,14 +116,14 @@ class GomokuEnv(gym.Env):
             move_curr = moves[players == self.current_player]
             move_oppo = moves[players != self.current_player]
             square_state[0][move_curr // board_width,
-                            move_curr % board_height] = 1.0
+                            move_curr % board_height] = 1.0 # 0 层是当前动作的state
             square_state[1][move_oppo // board_width,
-                            move_oppo % board_height] = 1.0
+                            move_oppo % board_height] = 1.0 # 1 层是对手动作的state
             square_state[2][self.last_move // board_width,
-                            self.last_move % board_height] = 1.0
+                            self.last_move % board_height] = 1.0 # 2 层是最后动作的state
 
         if len(self.states) % 2 == 0:
-            square_state[3][:, :] = 1.0
+            square_state[3][:, :] = 1.0 # 长度为2，就是完整的一轮，一轮结束后最后一层都设置为0
 
         return square_state[:, ::-1, :]
 

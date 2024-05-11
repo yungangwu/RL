@@ -1,6 +1,6 @@
 import numpy as np
 
-from mcts import MCTS, policy_value_fn
+from strategy.mcts import MCTS, policy_value_fn
 from config.config import *
 
 class MCTS_Pure:

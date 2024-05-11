@@ -6,14 +6,15 @@ import numpy as np
 from config.config import *
 from collections import deque, defaultdict
 from env.gomoku import GomokuEnv
-from model.model import PolicyValueNet
-from mcts.selfplay import MCTSPlayer, MCTS_Pure
+from model.model_mcts import PolicyValueNet
+from player.mcts_player import MCTSPlayer, MCTS_Pure
+from util.buffer import ReplayBuffer
 
 class TrainPipeline:
     def __init__(self) -> None:
         self.env = GomokuEnv()
 
-        self.data_buffer = deque(maxlen=buffer_size)
+        self.replay_buffer = ReplayBuffer(buffer_size=buffer_size)
         self.play_batch_size = 1
         self.best_win_ratio = 0.0
 
@@ -30,8 +31,8 @@ class TrainPipeline:
         for state, mcts_prob, winner in play_data:
             for i in [1, 2, 3, 4]:
                 # rotate counterclockwise
-                equi_state = np.array([np.rot90(s, i) for s in state])
-                equi_mcts_prob = np.rot90(np.flipud(
+                equi_state = np.array([np.rot90(s, i) for s in state]) # np.rot90用于将数组逆时针旋转90度
+                equi_mcts_prob = np.rot90(np.flipud( # np.flipud用于将数组沿着水平方向翻转
                     mcts_prob.reshape(board_height, board_width)
                 ), i)
                 extend_data.append((equi_state,
@@ -52,18 +53,15 @@ class TrainPipeline:
             self.episode_len = len(play_data)
             # agument the data
             play_data = self.get_equi_data(play_data)
-            self.data_buffer.extend(play_data)
+            self.replay_buffer.push(play_data)
 
     def policy_update(self):
-        mini_batch = random.sample(self.data_buffer, train_batch_size)
-        state_batch = [data[0] for data in mini_batch]
-        mcts_probs_batch = [data[1] for data in mini_batch]
-        winner_batch = [data[2] for data in mini_batch]
+        state_batch, action_batch, winner_batch = self.replay_buffer.sample(train_batch_size)
         old_probs, old_v = self.policy_value_net.policy_value(state_batch)
         for i in range(update_epochs):
             loss, entropy = self.policy_value_net.train_step(
                 state_batch,
-                mcts_probs_batch,
+                action_batch,
                 winner_batch,
                 learn_rate * self.lr_multiplier
             )
@@ -104,7 +102,7 @@ class TrainPipeline:
                 self.collect_selfplay_data(self.play_batch_size)
                 print("batch i:{}, episode_len:{}".format(
                     i_step + 1, self.episode_len))
-                if len(self.data_buffer) > train_batch_size:
+                if len(self.replay_buffer) > train_batch_size:
                     loss, entropy = self.policy_update()
 
                 if (i_step + 1) % checkpoint_freq == 0:
