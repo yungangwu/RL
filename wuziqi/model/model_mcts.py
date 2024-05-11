@@ -95,7 +95,7 @@ class PolicyValueNet:
 
         self.l2_const = 1e-4
 
-        self.policy_value_net = Net().to(self.device)
+        self.policy_value_net = Net(board_width=board_width, board_height=board_height).to(self.device)
         self.optimizer = optim.Adam(self.policy_value_net.parameters(), weight_decay=self.l2_const)
 
         if model_file:
