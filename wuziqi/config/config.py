@@ -15,5 +15,5 @@ kl_coeff = 0.02        # kl系数
 checkpoint_freq = 20   # 模型保存频率
 mcts_infer = 200       # 纯mcts推理时间
 restore_model = None   # 是否加载预训练模型
-game_batch_num=40      # 训练步数
-model_path="."         # 模型保存路径
+game_batch_num=200      # 训练步数
+model_path="./path_to_model/"         # 模型保存路径

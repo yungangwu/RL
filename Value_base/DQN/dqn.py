@@ -17,13 +17,13 @@ def run_maze():
 
             if (step > 200) and (step % 5 == 0):
                 RL.learn()
-            
+
             observation = observation_
 
             if done:
                 break
             step += 1
-        
+
     print('game over')
     env.destroy()
 

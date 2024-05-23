@@ -8,7 +8,7 @@ class ReplayBuffer():
 
     def push(self, play_data):
         '''
-        play_data: [(state, mcts_prob, winner_z), ..., ...]
+        play_data: [(state, act, winner_z, state_), ..., ...]
         '''
         self.buffer.extend(play_data)
 
@@ -18,8 +18,9 @@ class ReplayBuffer():
         states = torch.Tensor([exp[0] for exp in experiences])
         actions = torch.Tensor([exp[1] for exp in experiences]).long()
         winner_batch = torch.Tensor([exp[2] for exp in experiences])
+        states_ = torch.Tensor([exp[3] for exp in experiences])
 
-        return states, actions, winner_batch
+        return states, actions, winner_batch, states_
 
     def __len__(self): # 如果类内不定义该方法，则不能通过内置方法len直接获取对象的长度
         return len(self.buffer)
