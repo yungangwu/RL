@@ -1,6 +1,6 @@
 from gomoku import Gomoku
 from dqn import DQN
-from self_play import train_dqn
+from test.ReinforceLearning.wuziqi.test.train_dqn import train_dqn
 
 gomoku = Gomoku()
 dqn = DQN(gomoku.board_size)

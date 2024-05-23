@@ -125,7 +125,7 @@ class GomokuEnv(gym.Env):
         if len(self.states) % 2 == 0:
             square_state[3][:, :] = 1.0 # 长度为2，就是完整的一轮，一轮结束后最后一层都设置为0
 
-        return square_state[:, ::-1, :]
+        return square_state[:, ::-1, :].astype(np.float32)
 
     def start_play(self, player1, player2, start_player=0):
         if start_player not in (0, 1):
@@ -146,22 +146,27 @@ class GomokuEnv(gym.Env):
                 return winner
 
     def start_self_play(self, player):
-        self.reset()
-        states, mcts_probs, current_players = [], [], []
+        state = self.reset()
+        states, states_, acts, current_players = [], [], [], []
         while True:
-            move, move_probs = player.get_action(self, return_prob=1)
-            states.append(self.current_state())
-            mcts_probs.append(move_probs)
+            move = player.get_action(self)
+            states.append(state)
+            [act_h, act_w] = self.move_to_location(move)
+            act_arr = np.zeros((board_width, board_height))
+            act_arr[act_h, act_w] = 1
+            acts.append(act_arr)
             current_players.append(self.current_player)
-            self.step(move)
+            state_, _, _, _ = self.step(move)
+            states_.append(state_)
+            state = state_
             end, winner = self.game_end()
             if end:
                 winners_z = np.zeros(len(current_players))
                 if winner != -1:
                     winners_z[np.array(current_players) == winner] = 1.0
                     winners_z[np.array(current_players) != winner] = -1.0
-                player.reset_player()
-                return winner, zip(states, mcts_probs, winners_z)
+                # player.reset_player()
+                return winner, zip(states, acts, winners_z, states_)
 
     def location_to_move(self, location):
         if (len(location) != 2):

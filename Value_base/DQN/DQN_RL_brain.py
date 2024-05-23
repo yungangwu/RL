@@ -22,7 +22,7 @@ class Net(nn.Module):
         self.fc1.weight.data.normal_(0, 0.1) # weight initialization
         self.out = nn.Linear(10, n_actions)
         self.out.weight.data.normal_(0, 0.1)
-    
+
     def forward(self, x):
         x = self.fc1(x)
         x = F.relu(x)
@@ -33,10 +33,10 @@ class Net(nn.Module):
 class DeepQNetwork:
     def __init__(self, n_actions,
                        n_features,
-                       learning_rate=0.01, 
-                       reward_decay=0.9, 
-                       e_greedy=0.9, 
-                       replace_target_iter=200, 
+                       learning_rate=0.01,
+                       reward_decay=0.9,
+                       e_greedy=0.9,
+                       replace_target_iter=200,
                        memory_size=2000,
                        batch_size=64,
                 ):
@@ -64,19 +64,19 @@ class DeepQNetwork:
         else:
             action = np.random.randint(0, self.n_actions)
         return action
-    
+
     def store_transiton(self, s, a, r, s_):
         transition = np.hstack((s, [a, r], s_)) # 用于水平（按列）拼接多个数组
         # 如果记忆库满了就覆盖老数据
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
         self.memory_counter += 1
-    
+
     def learn(self):
         # target net 参数更新
         if self.learn_step_counter % self.replace_target_iter == 0:
             self.target_net.load_state_dict(self.eval_net.state_dict())
-        
+
         self.learn_step_counter += 1
 
         if self.memory_counter > self.memory_size:
@@ -98,11 +98,10 @@ class DeepQNetwork:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-    
+
     def plot_cost(self):
         import matplotlib.pyplot as plt
         plt.plot(np.arange(len(self.cost_his)), self.cost_his)
         plt.ylabel('Cost')
         plt.xlabel('training steps')
         plt.show()
-
