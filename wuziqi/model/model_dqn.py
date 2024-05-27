@@ -5,6 +5,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 from config.config import *
+from model.base_policy_value import BasePolicyValue
 
 class DQN(nn.Module):
     def __init__(self, board_size):
@@ -15,7 +16,6 @@ class DQN(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.fc = nn.Linear(128 * board_size * board_size, board_size * board_size)
-        # self.fc2 = nn.Linear(board_size * board_size, board_size * board_size)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -26,7 +26,7 @@ class DQN(nn.Module):
         x = x.view(-1, self.board_size * self.board_size)
         return x
 
-class DQNPolicyValue:
+class DQNPolicyValue(BasePolicyValue):
     def __init__(self, model_file, epsilon=0.8) -> None:
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
@@ -65,7 +65,8 @@ class DQNPolicyValue:
 
         return move
 
-    def train_step(self, state_batch, act_batch, winner_batch, state_batch_, lr):
+    def train_step(self, meta_data, lr):
+        state_batch, act_batch, winner_batch, state_batch_ = meta_data
         state_batch = state_batch.to(self.device)
         act_batch = act_batch.to(self.device)
         winner_batch = winner_batch.to(self.device)
