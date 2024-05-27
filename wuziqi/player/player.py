@@ -2,12 +2,12 @@ import numpy as np
 
 from player.base_player import Player
 from env.gomoku import GomokuEnv
-from model.model_dqn import DQNPolicyValue
 
-class DQNPlayer(Player):
-    def __init__(self, strategy, is_selfplay) -> None:
-        self.strategy: DQNPolicyValue = strategy
+class StrategyPlayer(Player):
+    def __init__(self, strategy, is_selfplay, player_name) -> None:
+        self.strategy = strategy
         self._is_selfplay = is_selfplay
+        self.player_name = player_name
 
     def set_player_ind(self, p):
         self.player = p
@@ -28,4 +28,4 @@ class DQNPlayer(Player):
             print("WARNING: the board is full")
 
     def __str__(self, ) -> str:
-        return "DQN {}".format(self.player)
+        return "{} {}".format(self.player_name, self.player)
