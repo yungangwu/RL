@@ -4,6 +4,7 @@ This module exposes the RetroWrapper class.
 import multiprocessing
 import retro
 import gc
+import time
 
 MAKE_RETRIES = 5
 
@@ -20,7 +21,10 @@ def _retrocom(rx, tx, game, kwargs):
 
     # Sit around on the queue, waiting for calls from RetroWrapper
     while True:
-        attr, args, kwargs = rx.get()
+        try:
+            attr, args, kwargs = rx.get()
+        except EOFError:
+            time.sleep(1)
 
         # First, handle special case where the wrapper is asking if attr is callable.
         # In this case, we actually have RetroWrapper.symbol, attr, and {}.
@@ -88,7 +92,7 @@ class RetroWrapper():
 
         self._rx = multiprocessing.Queue()
         self._tx = multiprocessing.Queue()
-        self._proc = multiprocessing.Process(target=_retrocom, args=(self._rx, self._tx, game, kwargs), daemon=True)
+        self._proc = multiprocessing.Process(target=_retrocom, args=(self._tx, self._rx, game, kwargs), daemon=True)
         self._proc.start()
 
     def __del__(self):

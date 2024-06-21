@@ -60,10 +60,8 @@ class PPOPolicyValue:
 
     def get_action(self, state, action_space):
         state = torch.tensor(state.copy()).float().to(self.device)
-        # print('rec state', state.shape)
         state = state.permute(2, 0, 1).unsqueeze(0)
         action_probs, _ = self.pi_action_net(state)
-        # print('action_probs', action_probs.shape)
         action_probs_cpu = action_probs.cpu().detach().squeeze()
         binary_actions = torch.zeros_like(action_probs_cpu)
 
@@ -78,6 +76,13 @@ class PPOPolicyValue:
         # print('binary_actions', binary_actions)
 
         return binary_actions
+
+    def get_value(self, state):
+        state = torch.tensor(state.copy()).float().to(self.device)
+        state = state.permute(2, 0, 1).unsqueeze(0)
+        _, value = self.pi_action_net(state)
+
+        return value
 
     def train_step(self, buffer: ReplayBuffer, train_batch_size = 128):
         # print('ppo train' + '*'*20)
