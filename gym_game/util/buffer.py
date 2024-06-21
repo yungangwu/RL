@@ -1,17 +1,24 @@
 import random
-import torch
 import numpy as np
 
 from collections import deque
 
 class ReplayBuffer():
     def __init__(self, buffer_size) -> None:
+        self.buffer_size = buffer_size
         self.buffer = deque(maxlen=buffer_size)
 
     def push(self, play_data):
         '''
         play_data: [(state, act, winner_z, state_), ..., ...]
         '''
+        if len(play_data) > self.buffer_size:
+            raise ValueError("play_data size exceeds buffer size")
+
+        # 如果 play_data 的长度超过了缓冲区的剩余空间，首先腾出空间
+        while len(self.buffer) + len(play_data) > self.buffer_size:
+            self.buffer.popleft()
+
         self.buffer.extend(play_data)
 
     def sample(self, batch_size):
@@ -26,5 +33,5 @@ class ReplayBuffer():
 
         return states_batch, acts_batch, winner_zs_batch, states_batch_
 
-    def len(self): # 如果类内不定义该方法，则不能通过内置方法len直接获取对象的长度
+    def _len(self): # 如果类内不定义该方法，则不能通过内置方法len直接获取对象的长度
         return len(self.buffer)
