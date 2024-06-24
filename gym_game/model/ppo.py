@@ -8,6 +8,9 @@ import numpy as np
 from util.buffer import ReplayBuffer
 from torch.distributions import Categorical
 
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
+
 # TODO:
 # 2、训练模型要测试其强度，赢了才能保存
 # 3、将best模型向各个环境进行推送
@@ -85,7 +88,7 @@ class PPOPolicyValue:
         return value
 
     def train_step(self, buffer: ReplayBuffer, train_batch_size = 128):
-        # print('ppo train' + '*'*20)
+        print('ppo train' + '*'*20)
         state_batch, act_batch, winner_batch, state_batch_ = buffer.sample(train_batch_size)
         # print('state_batch', type(state_batch), state_batch.shape)
 
@@ -122,7 +125,7 @@ class PPOPolicyValue:
         old_act_probs, _ = self.old_action_net(state_batch)
         old_action_probs = torch.sum(old_act_probs * action_batch, dim=1)
         old_m = Categorical(probs=old_act_probs)
-        ratio = pi_action_probs - old_action_probs
+        ratio = pi_action_probs /(old_action_probs + 1e-5)
         surr = ratio * td_error
 
         kl = torch.distributions.kl_divergence(old_m, pi_m)
