@@ -1,4 +1,4 @@
-
+import multiprocessing
 import threading
 import numpy as np
 import logging
@@ -15,7 +15,7 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 # retro.data.list_games()
 
 ACTION_DIM = 9
-EP_LEN = 1000
+EP_LEN = 2000
 MIN_BATCH_SIZE = 128
 BUFFER_SIZE = 2000
 EPOCHS = 20000
@@ -57,8 +57,6 @@ class TrainPipeline:
                 else:
                     raise ValueError("Unexpected return type from env.step(action)")
 
-                # TODO
-                # done了之后，将所有的reward添加到所有的数据对里进行更新，
                 if t == EP_LEN - 1 or done:
                     v_s_ = ppo.get_value(state_)
                     discounted_r = []
@@ -70,35 +68,40 @@ class TrainPipeline:
                     tuple_list = list(zip(buffer_s, buffer_a, discounted_r, buffer_s_))
                     self.replay_buffer.push(tuple_list)
                     logger.info(f'Worker {threading.current_thread().name} - Step: {t}, Reward: {reward}')
+                    break
 
 def training_loop(ppo, replay_buffer: ReplayBuffer, batch_size=MIN_BATCH_SIZE):
     while True:
+        logger.debug('training loop')
         if replay_buffer._len() >= batch_size:
             act_loss = ppo.train_step(replay_buffer, batch_size)
             logger.info(f'Training - Action Loss: {act_loss}')
         else:
             time.sleep(1)  # 避免繁忙等待
+        # time.sleep(1)
 
-def running_train(ppo, replay_buffer, envs, num_works):
-    # 启动环境收集线程
+def running_train(test_ppo, train_ppo, replay_buffer, envs, num_works):
+# 启动环境收集线程
     threads = []
     for i in range(num_works):
         logger.info(f'创建环境收集线程{i}')
         pipeline = TrainPipeline(replay_buffer, ACTION_DIM)
-        work_thread = threading.Thread(target=pipeline.work, args=(ppo, envs[i], ), daemon=True)
+        work_thread = threading.Thread(target=pipeline.work, args=(test_ppo, envs[i], ), daemon=True)
         work_thread.start()
         threads.append(work_thread)
 
     # 启动训练线程
-    training_loop(ppo, replay_buffer, MIN_BATCH_SIZE)
+    training_loop(train_ppo, replay_buffer, MIN_BATCH_SIZE)
+
 
 if __name__ == '__main__':
     replay_buffer = ReplayBuffer(BUFFER_SIZE)
-    ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM)
+    test_ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM)
+    train_ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM)
 
     game = 'IceClimber-Nes'
     num_works = 3
     envs = [RetroWrapper(game) for _ in range(num_works)]
 
     logger.debug('开始训练过程')
-    running_train(ppo, replay_buffer, envs, num_works)
+    running_train(test_ppo, train_ppo, replay_buffer, envs, num_works)

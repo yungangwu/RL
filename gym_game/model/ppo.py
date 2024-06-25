@@ -1,4 +1,6 @@
+import os
 import random
+import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -57,13 +59,22 @@ class PPOPolicyValue:
         self.pi_action_net = ACNet(height, wide, action_dim).to(self.device)
         self.old_action_net = ACNet(height, wide, action_dim).to(self.device)
 
+        self.act_steps = 0
         self.training_steps = 0
         self.epsilon = epsilon
         self.optimpi = optim.Adam(self.pi_action_net.parameters())
 
+    def update_actor(self,):
+        best_file_path = '../modle_file/model_best.pt'
+        if os.path.isfile(best_file_path):
+            self.pi_action_net.load_state_dict(torch.load(best_file_path))
+
     def get_action(self, state, action_space):
         state = torch.tensor(state.copy()).float().to(self.device)
         state = state.permute(2, 0, 1).unsqueeze(0)
+        if self.act_steps % 1000 == 0:
+            self.update_actor()
+
         action_probs, _ = self.pi_action_net(state)
         action_probs_cpu = action_probs.cpu().detach().squeeze()
         binary_actions = torch.zeros_like(action_probs_cpu)
@@ -76,7 +87,7 @@ class PPOPolicyValue:
             move = np.random.choice(action_space)
 
         binary_actions[move] = 1.0
-        # print('binary_actions', binary_actions)
+        self.act_steps += 1
 
         return binary_actions
 
@@ -88,7 +99,7 @@ class PPOPolicyValue:
         return value
 
     def train_step(self, buffer: ReplayBuffer, train_batch_size = 128):
-        print('ppo train' + '*'*20)
+        print('*'*20, "ppo train", '*'*20)
         state_batch, act_batch, winner_batch, state_batch_ = buffer.sample(train_batch_size)
         # print('state_batch', type(state_batch), state_batch.shape)
 
@@ -111,7 +122,7 @@ class PPOPolicyValue:
         torch.cuda.empty_cache()
 
         if self.training_steps % 200 == 0:
-            self.save_model(f'/home/yg/code/test/ReinforceLearning/gym_game/modle_file/model_epoch_{self.training_steps}.pt')
+            self.save_model(f'/home/yg/code/test/ReinforceLearning/gym_game/modle_file/model_best.pt')
 
         return act_loss
 
@@ -142,7 +153,7 @@ class PPOPolicyValue:
         return self.pi_action_net.state_dict()
 
     def save_model(self, model_file) -> str:
-        print('save model', '*'*20)
+        print("save model ", '*'*20)
         net_params = self.get_policy_param()
         torch.save(net_params, model_file)
 
