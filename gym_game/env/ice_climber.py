@@ -15,7 +15,7 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 # retro.data.list_games()
 
 ACTION_DIM = 9
-EP_LEN = 2000
+EP_LEN = 1000
 MIN_BATCH_SIZE = 128
 BUFFER_SIZE = 2000
 EPOCHS = 20000
@@ -96,8 +96,13 @@ def running_train(test_ppo, train_ppo, replay_buffer, envs, num_works):
 
 if __name__ == '__main__':
     replay_buffer = ReplayBuffer(BUFFER_SIZE)
-    test_ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM)
-    train_ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM)
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+
+    test_ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM, device='cpu')
+    train_ppo = PPOPolicyValue(HEIGHT, WIDE, ACTION_DIM, device)
 
     game = 'IceClimber-Nes'
     num_works = 3

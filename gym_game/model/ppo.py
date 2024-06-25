@@ -49,12 +49,8 @@ A_UPDATE_STEPS = 10
 C_UPDATE_STEPS = 10
 
 class PPOPolicyValue:
-    def __init__(self, height, wide, action_dim, epsilon=0.8) -> None:
-
-        if torch.cuda.is_available():
-            self.device = "cuda"
-        else:
-            self.device = "cpu"
+    def __init__(self, height, wide, action_dim, device, epsilon=0.8) -> None:
+        self.device = device
 
         self.pi_action_net = ACNet(height, wide, action_dim).to(self.device)
         self.old_action_net = ACNet(height, wide, action_dim).to(self.device)
