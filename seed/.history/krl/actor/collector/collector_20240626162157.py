@@ -1,0 +1,3 @@
+
+class GameCollector(object):
+    

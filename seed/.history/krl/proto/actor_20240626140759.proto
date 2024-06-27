@@ -1,0 +1,57 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package krl.proto.actor;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+service Actor {
+  // Send Observations Of Game
+  rpc SendObservation (GameObservations) returns (GameActions) {}
+  rpc ResetServers (ServerList) returns (google.protobuf.Empty) {}
+}
+
+message ServerList {
+  repeated string server_ids = 1;
+}
+
+message Agent {
+  string server_id = 1;
+  uint32 agent_id = 2;
+}
+
+message GameObservation
+{
+  Agent agent = 1;
+  google.protobuf.Any observation = 2;
+}
+
+message GameObservations {
+  repeated GameObservation observations = 1;
+}
+
+
+message GameAction {
+  Agent agent = 1;
+  google.protobuf.Any action = 2;
+}
+
+message GameActions {
+  repeated GameAction actions = 1;
+  repeated string done_envs = 2;
+  repeated Agent done_agents = 3;
+}
