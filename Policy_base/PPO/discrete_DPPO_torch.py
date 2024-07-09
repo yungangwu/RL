@@ -8,6 +8,7 @@ import gym
 import threading
 import queue
 
+
 EP_MAX = 1000
 EP_LEN = 200
 N_WORKER = 4                # parallel workers

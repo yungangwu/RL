@@ -148,7 +148,7 @@ class PPOPolicyValue:
     def get_policy_param(self,):
         return self.pi_action_net.state_dict()
 
-    def save_model(self, model_file) -> str:
+    def save_model(self, model_file):
         print("save model ", '*'*20)
         net_params = self.get_policy_param()
         torch.save(net_params, model_file)
