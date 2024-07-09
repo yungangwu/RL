@@ -1,0 +1,56 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// 定义语言类型
+syntax = "proto3";
+
+// 定义包体名称
+package krl.proto.model;
+
+import "google/protobuf/empty.proto";
+
+// service用于定义一组RPC方法，定义请求和响应格式
+service Model {
+  // Send Observations Of Game
+  // rpc表示定义一个rpc方法，SendModel方法接受一个ModelParams消息作为请求，并返回一个google.protobuf.Empty作为响应
+  rpc SendModel (ModelParams) returns (google.protobuf.Empty) {}
+  rpc FetchModel (ModelVersion) returns (FetchModelResult) {}
+  rpc GetLatestVersion (ModelLatestVersionRequest) returns (ModelLatestVersionResponse) {}
+}
+
+// 定义一个消息类型， 每个字段有一个唯一编号，从1开始
+message ModelLatestVersionRequest {
+  string name = 1;
+}
+
+message ModelLatestVersionResponse {
+  uint32 version = 1;
+}
+
+message ModelVersion {
+  string name = 1;
+  uint32 base_version = 2;
+  uint32 request_version = 3;
+}
+
+message FetchModelResult {
+  string name = 1;
+  uint32 new_version = 2;
+  optional ModelParams model_pramas = 3;
+}
+
+message ModelParams {
+  string name = 1;
+  bytes data = 2;
+}

@@ -5,6 +5,7 @@ from typing import Any, Tuple, Optional, Callable, List, Union
 from abc import ABC, abstractmethod
 from krl.proto import actor_pb2
 from krl.proto import actor_pb2_grpc
+from krl.actor.envs.env import GameEnv
 from tianshou.policy import BasePolicy
 from tianshou.data.batch import Batch
 from tianshou.data.buffer.base import ReplayBuffer
@@ -26,7 +27,7 @@ class Agent(ABC):
         self._buffer = ReplayBuffer(**agent_config['replay_buffer'])
         self.reset()
 
-    def set_env(self, env) -> Any:
+    def set_env(self, env: GameEnv) -> Any:
         self.env = env
 
     def get_agent_id(self) -> int:
