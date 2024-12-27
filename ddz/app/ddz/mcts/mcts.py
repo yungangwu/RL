@@ -13,13 +13,13 @@ def softmax(x):
     probs = np.exp(x - np.max(x))
     probs /= np.sum(probs)
     return probs
-    
+
 MAX_CHOICE = 20
 class TreeNode(object):
     def __init__(self, mcts, parent, prior_p):
         self._mcts = mcts
         self._parent = parent
-        self._children = {} 
+        self._children = {}
         self._n_visits = 0
         self._Q = 0
         self._u = 0
@@ -53,7 +53,7 @@ class TreeNode(object):
     def get_value(self, c_puct):
         self._u = (c_puct * self._c_puct_factor * self._P * np.sqrt(self._parent._n_visits + 1) / (1 + self._n_visits))
         return self._Q + self._u
-  
+
     def is_leaf(self):
         return self._children == {}
 
@@ -84,7 +84,7 @@ class TreeNode(object):
         for k,_ in self._children.items():
             texts.append(str(k) + "|")
         return ''.join(texts)
-         
+
 
 class DecisionNode(TreeNode):
     def __init__(self, mcts, parent, prior_p):
@@ -100,7 +100,7 @@ class DecisionNode(TreeNode):
         # assert not state.end()
         # print("=====================================")
         # state.print()
-        state = self._state 
+        state = self._state
         legal_actions_mask = state.get_legal_actions()
         not_legal_actions_mask = ~legal_actions_mask
 
@@ -110,7 +110,7 @@ class DecisionNode(TreeNode):
 
         for action in range(1, ACTION_DIM):
             prob = action_priors[action]
-            if prob > 0 and action not in self._children and legal_actions_mask[action]:  
+            if prob > 0 and action not in self._children and legal_actions_mask[action]:
                 state_copy = State(state.position)
                 state_copy.copy_from_state(state)
                 state_copy.do_move(action)
@@ -121,7 +121,7 @@ class DecisionNode(TreeNode):
                 node = ChanceNode(self._mcts, self, p)
                 self._children[action] = node
                 node.expand(state_copy)
-                
+
     def select(self, c_puct):
         for k,v in self._children.items():
             v.do_expand()
@@ -145,7 +145,7 @@ class ChanceNode(TreeNode):
     def __init__(self, mcts, parent, prior_p):
         super(ChanceNode, self).__init__(mcts, parent, prior_p)
         self._expand = False
-    
+
     def expand(self, state):
         self._state = state
         self._expand = False
@@ -191,14 +191,14 @@ class ChanceNode(TreeNode):
         return "".join(texts)
 
 class MCTS(object):
-   
+
     def __init__(self, position, policy_net, infer_net, c_puct=5):
         self._root = DecisionNode(self, None, 1.0)
         self._position = position
         self._policy_net = policy_net
         self._infer_net = infer_net
         self._c_puct = c_puct
-  
+
     def evaluate_policy(self, state):
         policy_input = state.get_policy_input()
         policy_input = np.expand_dims(policy_input, axis=0)
@@ -214,7 +214,7 @@ class MCTS(object):
         # state.print()
         legal_actions_mask_one = state.get_legal_actions()
         action_states = [(0, state, legal_actions_mask_one)]
-        
+
         for action_one in range(1, ACTION_DIM):
             if legal_actions_mask_one[action_one]:
                 state_copy = State(state.position)
@@ -234,7 +234,7 @@ class MCTS(object):
                 ar.append(action_state[1].get_infer_input())
         infer_inputs = np.stack(ar, axis=0)
         state_probs = self._infer_net.predict_on_batch(infer_inputs)
- 
+
         index = 0
         not_legal_actions_mask_one = ~legal_actions_mask_one
         action_probs_one = state_probs[index] + 1e-6
@@ -287,7 +287,7 @@ class MCTS(object):
             leaf_value = (1.0 if state.is_winner(self._position) else -1.0)
         # print("update leaf value:", leaf_value)
         node.update_recursive(leaf_value)
-        
+
 
     def get_action_probs(self, state, playout, temp=1e-3):
         # start = time.time()
@@ -367,7 +367,7 @@ class MCTS(object):
     #                                     move = move_manager.get_move_by_id(action)
     #                                     act_str = act_str + cards_value_to_str(move.get_action_cards()) + '|'
     #                     label = ('act: {}'.format(act_str) + '\nvisit: {}'.format(str(child_node.get_visits())) +
-    #                                 '\nvalue:{:.2f}'.format(child_node.get_Q()) +  
+    #                                 '\nvalue:{:.2f}'.format(child_node.get_Q()) +
     #                                 '\np:{:.6f}'.format(child_node.get_P()) +
     #                                 '\nv:{:.6f}'.format(child_node.get_value(self._c_puct)) +
     #                                 '\nf:{:.2f}'.format(child_node.get_puct_factor()))

@@ -86,7 +86,7 @@ class Agent(ABC):
     def encode_action(self, act) -> any_pb2.Any:
         pass
 
-    def do_action(self, act: Union[np.array]):
+    def do_action(self, act: Union[np.float32, np.ndarray[Any, Any]]):
         self._set_status(AgentStatus.ACTED)
         action_msg = self.encode_action(act)
         agent_msg = actor_pb2.Agent(server_id=self.env.get_env_id(), agent_id=self.agent_id)

@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.10.16.3-microsoft-standard-WSL2-x86_64-with-glibc2.10",
+    "python": "3.8.8",
+    "heartbeatAt": "2023-06-10T09:12:55.243053",
+    "startedAt": "2023-06-10T09:12:53.776640",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3060 Ti",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "selfPlay.py",
+    "codePath": "train/selfPlay.py",
+    "git": {
+        "remote": "https://gitee.com/ariyg/muzero-gomoku.git",
+        "commit": "96b478711d2a22a6f9255a773f9d8912e573065e"
+    },
+    "email": "wuyungang@kingsoft.com",
+    "root": "/home/yg/code/ReinforcementLearning/wuziqi",
+    "host": "SK-20230215KWGZ",
+    "username": "root",
+    "executable": "/home/yg/anaconda3/envs/pytorch-gpu/bin/python"
+}
