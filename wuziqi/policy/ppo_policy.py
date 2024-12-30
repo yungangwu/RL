@@ -124,6 +124,9 @@ class PPOPolicy(Policy):
         obs = torch.cat([cur_state, op_state, blank_state], dim=-1)
         return obs
 
+    def load(self, path):
+        self.model.load_state_dict(torch.load(path))
+        self.old_model.load_state_dict(torch.load(path))
 
 def init_policy(**kwargs):
     policy_config = kwargs.get('policy', {})

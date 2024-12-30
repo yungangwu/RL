@@ -26,7 +26,7 @@ class GameState:
         self.move_history = []
         self._round = 0
         chair_id = self.get_chair_id()
-        return self.get_state(chair_id)
+        return self.get_state(chair_id), chair_id
 
     def step(self, action):
         '''
@@ -53,7 +53,7 @@ class GameState:
             'action_mask': action_mask,
             }
 
-        return obs, reward, done, info
+        return obs, reward, done, info,
 
     def action_mask(self):
         mask = self.board != 0
