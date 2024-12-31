@@ -6,26 +6,35 @@ import os
 from collections import deque
 from game.wuziqi import GameState
 from agent.agent import Agent
+from arena.arena import arena
 
-board_size = 15
-env = GameState(board_size)
-state_size = env.state_size
-action_size = env.action_size
-# 创建DQNAgent实例并加载模型
-agent1 = DQNAgent(state_size, action_size, Player.BLACK, buffer_size=2000, batch_size=32, gamma=0.95, lr=0.001)
-agent1.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_7620000/model.pth')
-agent2 = DQNAgent(state_size, action_size, Player.WHITE, buffer_size=2000, batch_size=32, gamma=0.95, lr=0.001)
-agent2.load_model('/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_5000/model.pth')
-# path1 = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_5000/model.pth'
-# for k in range(10000,950000,5000):
-#     path2 = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_' + f'{k}/model.pth'
-#     # path2 = '/home/yg/code/ReinforcementLearning/wuziqi/path_to_model/epoch_' + f'{k+5000}/model.pth'
 
-#     agent1.load_model(path1)
-#     agent2.load_model(path2)
+def run(net_config, board_size, version1, version2, seed, num_epoch):
+    print(f'version1:{version1}, version2:{version2}, seed:{seed}, num_epoch:{num_epoch}')
+    return arena(net_config, board_size, version1, version2, seed, num_epoch)
 
-#     # 进行测试
-#     score = test(agent1, agent2, 1000)
-#     # wandb.log("score", score)
-#     time.sleep(20)
-test(agent1, agent2, 1000)
+if __name__ == '__main__':
+    v1 = 5
+    v2 = 100
+    seed = 3
+    num_epoch = 100
+    board_size = 15
+    test_config = {
+        'device': 'cpu',
+        'net': {
+                'state_dim': board_size ** 2 * 3,
+                'action_dim': board_size ** 2,
+            },
+        'policy': {
+            'model_path': './path_to_model/ppo_model_{version}.pth',
+            'lr': 0.0001,
+            'eps': 0.3,
+            'eps_decay': 0.9999,
+            'eps_min': 0,
+            'device': 'cpu',
+            'repeat': 3,
+        }
+    }
+
+    score1, score2 = run(test_config, board_size, v1, v2, seed, num_epoch)
+    print(f'version1: {v1} vs version2: {v2} -- score1: {score1} vs score2: {score2}')

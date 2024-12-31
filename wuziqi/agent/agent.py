@@ -106,7 +106,7 @@ class Agent:
         self.replay_buffer = replay_buffer
 
     def choose_action(self, state):
-        self.policy.choose_action(state)
+        return self.policy.choose_action(state)
 
     def learn(self, batch_size):
         self.policy.learn(self.replay_buffer, batch_size)

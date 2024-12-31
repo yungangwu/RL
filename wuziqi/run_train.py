@@ -3,7 +3,7 @@ from policy.ppo_policy import init_policy
 from agent.agent import Agent
 from util.buffer import ReplayBuffer
 
-BATCH_SIZE = 1024
+BATCH_SIZE = 64
 
 def train(env: GameState, agent: Agent, replay_buffer: ReplayBuffer, num_epochs: int = 10000):
 
@@ -32,11 +32,12 @@ def train(env: GameState, agent: Agent, replay_buffer: ReplayBuffer, num_epochs:
 if __name__ == '__main__':
     board_size = 15
     buffer_size = 10000
-    num_epochs = 3000
+    num_epochs = 10000
     train_config = {
+        'device': 'cuda',
         'net': {
                 'state_dim': board_size ** 2 * 3,
-                'action_dim': board_size * 2,
+                'action_dim': board_size ** 2,
             },
         'policy': {
             'model_path': './path_to_model/ppo_model_{version}.pth',

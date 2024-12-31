@@ -1,4 +1,6 @@
 import os
+import torch
+import numpy as np
 from util.common import get_logger
 from policy.network import ACNet
 from policy.ppo_policy import PPOPolicy
@@ -6,30 +8,45 @@ from policy.ppo_policy import PPOPolicy
 logger = get_logger(__name__)
 
 class FightAgent:
-    def __init__(self, net_config: str, checkpoint_path: str, device: str) -> None:
+    def __init__(self, net_config: str, checkpoint_path: str, seed: int, device: str) -> None:
         super().__init__()
         self._device = device
-        self.net = ACNet(**net_config).to(device=device)
-        self.old_net = ACNet(**net_config).to(device=device)
+        self.net = ACNet(**net_config['net']).to(device=device)
+        self.old_net = ACNet(**net_config['net']).to(device=device)
         self.net.eval()
         self.old_net.eval()
-        self.policy = PPOPolicy(self.net, self.old_net, None)
+        policy_config = net_config['policy']
+        self.policy = PPOPolicy(policy_config, self.net, self.old_net, None)
+        self.policy.set_seed(seed)
         if checkpoint_path and os.path.exists(checkpoint_path):
             logger.info(f'load model from file [{checkpoint_path}].')
             self.policy.load(checkpoint_path)
         else:
             logger.error(f'checkpoint file [{checkpoint_path}] not found.')
 
-    def act(self, obs: Batch, legal_actions: list):
-        num_act = len(legal_actions)
-        if num_act > 1:
-            obs['act'] = Batch(hero_name=[0], hero_attr=0)
-            batch_obs = _create_value(obs, num_act)
-            for i in range(num_act):
-                obs['act'] = Batch(hero_name=legal_actions[i][0], hero_attr=legal_actions[i][1])
-                batch_obs[i] = obs
-            batch_obs.to_torch(dtype=torch.float32, device=self._device)
-            with torch.no_grad():
-                q, _ = self.net(batch_obs)
-            a = torch.argmax(q.flatten())
-        return a
+    def act(self, state):
+        obs = state['obs']
+        action_mask = state['action_mask']
+
+        actions_prob = self.policy.forward(obs)
+        masked_actions = actions_prob * action_mask
+        action = np.argmax(masked_actions)
+
+        return action
+
+    def _obs_to_torch(self, obs):
+        cur_state = obs['cur_state']
+        op_state = obs['op_state']
+        blank_state = obs['blank_state']
+
+        cur_state = cur_state.flatten()
+        cur_state = torch.from_numpy(cur_state).to(self._device, dtype=torch.float32)
+
+        op_state = op_state.flatten()
+        op_state = torch.from_numpy(op_state).to(self._device, dtype=torch.float32)
+
+        blank_state = blank_state.flatten()
+        blank_state = torch.from_numpy(blank_state).to(self._device, dtype=torch.float32)
+
+        obs = torch.cat([cur_state, op_state, blank_state], dim=-1)
+        return obs

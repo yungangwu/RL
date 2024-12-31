@@ -21,12 +21,17 @@ class GameState:
         self.players = [GamePieces.WHITE, GamePieces.BLACK]
         self.players_values = [1, -1]
 
+    def set_seed(self, seed):
+        self._seed = seed
+        if seed is not None:
+            np.random.seed(seed=seed)
+
     def reset(self):
         self.board = np.zeros((self.board_size, self.board_size), dtype=np.int8)
         self.move_history = []
         self._round = 0
         chair_id = self.get_chair_id()
-        return self.get_state(chair_id), chair_id
+        return self.get_state(chair_id)
 
     def step(self, action):
         '''
@@ -56,13 +61,12 @@ class GameState:
         return obs, reward, done, info,
 
     def action_mask(self):
-        mask = self.board != 0
-        return mask
+        mask = (self.board == 0).flatten()
+        return mask.astype(float)
 
     def get_legal_actions(self):
-        zero_mask = self.board == 0
-        legal_moves = np.where(zero_mask, True, False).flatten()
-        return legal_moves
+        legal_moves = (self.board == 0).flatten()
+        return legal_moves.astype(float)
 
     def get_reward(self, chair_id):
         if self.check_game_over():
@@ -123,9 +127,9 @@ class GameState:
 
         for i in range(self.board_size):
             for j in range(self.board_size):
-                if self.board[i][j] == chair_id:
+                if self.board[i][j] == self.players_values[chair_id]:
                     cur_state[i][j] = 1
-                elif self.board[i][j] == op_chair_id:
+                elif self.board[i][j] == self.players_values[op_chair_id]:
                     op_state[i][j] = 1
                 else:
                     blank_state[i][j] = 1

@@ -13,11 +13,12 @@ class ReplayBuffer():
     def sample(self, batch_size):
         experiences = random.sample(self.buffer, batch_size)
 
-        states = torch.Tensor([exp[0] for exp in experiences])
-        actions = torch.Tensor([exp[1] for exp in experiences]).long()
-        rewards = torch.Tensor([exp[2] for exp in experiences])
-        next_states = torch.Tensor([exp[3] for exp in experiences])
-        dones = torch.Tensor([exp[4] for exp in experiences])
+        # states = torch.Tensor([exp[0] for exp in experiences])
+        # actions = torch.Tensor([exp[1] for exp in experiences]).long()
+        # rewards = torch.Tensor([exp[2] for exp in experiences])
+        # next_states = torch.Tensor([exp[3] for exp in experiences])
+        # dones = torch.Tensor([exp[4] for exp in experiences])
+        states, actions, rewards, next_states, dones = zip(*experiences)
 
         return states, actions, rewards, next_states, dones
 
