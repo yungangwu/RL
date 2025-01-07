@@ -108,6 +108,15 @@ class PPOPolicy(Policy):
 
         return {"loss": losses}  # 返回最后一个batch的loss
 
+    def get_v(self, state):
+        action_mask = state['action_mask']
+        legal_actions = state['legal_actions']
+        obs = state['obs']
+
+        obs = self.obs_to_torch(obs)
+
+        _, v = self.model(obs)
+        return v
 
     def choose_action(self, state):
         action_mask = state['action_mask']

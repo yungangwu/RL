@@ -110,3 +110,6 @@ class Agent:
 
     def learn(self, batch_size):
         self.policy.learn(self.replay_buffer, batch_size)
+
+    def get_v(self, state):
+        return self.policy.get_v(state)

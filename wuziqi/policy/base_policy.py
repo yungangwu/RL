@@ -24,6 +24,10 @@ class Policy(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_v(self, state):
+        pass
+
     def save(self, file_path):
         """
         可选：保存策略到文件。
