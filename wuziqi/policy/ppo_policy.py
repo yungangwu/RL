@@ -51,7 +51,7 @@ class PPOPolicy(Policy):
         self._learning_round += 1
         for _ in range(self._repeat):
             # 得到batch_size个数据，从replay_buffer中进行采样
-            batch_obs, act, rew, _, _ = replay_buffer.sample(batch_size)
+            batch_obs, act, rew = replay_buffer.sample(batch_size)
 
             # 将观测数据转为Tensor并堆叠成一个batch
             obs = torch.stack([self.obs_to_torch(obs) for obs in batch_obs], dim=0)
@@ -108,11 +108,7 @@ class PPOPolicy(Policy):
 
         return {"loss": losses}  # 返回最后一个batch的loss
 
-    def get_v(self, state):
-        action_mask = state['action_mask']
-        legal_actions = state['legal_actions']
-        obs = state['obs']
-
+    def get_v(self, obs):
         obs = self.obs_to_torch(obs)
 
         _, v = self.model(obs)

@@ -1,4 +1,19 @@
-2024-12-31 14:46:18,655 - INFO - load model from file [./path_to_model/ppo_model_5.pth].
-2024-12-31 14:46:19,217 - INFO - load model from file [./path_to_model/ppo_model_100.pth].
-2024-12-31 14:46:19,608 - INFO - load model from file [./path_to_model/ppo_model_100.pth].
-2024-12-31 14:46:19,616 - INFO - load model from file [./path_to_model/ppo_model_5.pth].
+2025-01-09 11:36:01,464 - INFO - Learning round: 1, Learning loss: 0.05254170298576355
+2025-01-09 11:36:01,481 - INFO - Learning round: 1, Learning loss: 0.041632190346717834
+2025-01-09 11:36:01,498 - INFO - Learning round: 1, Learning loss: 0.03176185488700867
+2025-01-09 11:36:01,719 - INFO - Learning round: 2, Learning loss: 0.024466238915920258
+2025-01-09 11:36:01,738 - INFO - Learning round: 2, Learning loss: 0.002508893609046936
+2025-01-09 11:36:01,757 - INFO - Learning round: 2, Learning loss: 0.0014584362506866455
+2025-01-09 11:36:01,984 - INFO - Learning round: 3, Learning loss: -0.002158910036087036
+2025-01-09 11:36:02,007 - INFO - Learning round: 3, Learning loss: 0.012713074684143066
+2025-01-09 11:36:02,029 - INFO - Learning round: 3, Learning loss: -0.007436677813529968
+2025-01-09 11:36:02,273 - INFO - Learning round: 4, Learning loss: -0.020611107349395752
+2025-01-09 11:36:02,290 - INFO - Learning round: 4, Learning loss: -0.012521490454673767
+2025-01-09 11:36:02,307 - INFO - Learning round: 4, Learning loss: -0.003318198025226593
+2025-01-09 11:36:02,522 - INFO - Learning round: 5, Learning loss: -0.0428633987903595
+2025-01-09 11:36:02,539 - INFO - Learning round: 5, Learning loss: -0.059467315673828125
+2025-01-09 11:36:02,559 - INFO - Learning round: 5, Learning loss: -0.042623162269592285
+2025-01-09 11:36:02,562 - INFO - Model save 5
+2025-01-09 11:36:02,794 - INFO - Learning round: 6, Learning loss: -0.04791074991226196
+2025-01-09 11:36:02,815 - INFO - Learning round: 6, Learning loss: -0.06345868110656738
+2025-01-09 11:36:02,832 - INFO - Learning round: 6, Learning loss: -0.05116061866283417

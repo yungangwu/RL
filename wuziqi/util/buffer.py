@@ -8,20 +8,14 @@ class ReplayBuffer():
     def __init__(self, buffer_size) -> None:
         self.buffer = deque(maxlen=buffer_size)
 
-    def push(self, state, action, reward):
-        self.buffer.extend(zip(state, action, reward))
+    def push(self, obs, action, reward):
+        self.buffer.extend(zip(obs, action, reward))
 
     def sample(self, batch_size):
         experiences = random.sample(self.buffer, batch_size)
+        obses, actions, rewards = zip(*experiences)
 
-        # states = torch.Tensor([exp[0] for exp in experiences])
-        # actions = torch.Tensor([exp[1] for exp in experiences]).long()
-        # rewards = torch.Tensor([exp[2] for exp in experiences])
-        # next_states = torch.Tensor([exp[3] for exp in experiences])
-        # dones = torch.Tensor([exp[4] for exp in experiences])
-        states, actions, rewards = zip(*experiences)
-
-        return states, actions, rewards
+        return obses, actions, rewards
 
     def clear(self):
         self.buffer.clear()

@@ -22,7 +22,7 @@ def train(env: GameState, agent: Agent, replay_buffer: ReplayBuffer, num_epochs:
             state = {'obs': obs, 'legal_actions': info['legal_actions'], 'action_mask': info['action_mask']}
             action = agent.choose_action(state)
             next_obs, reward, done, info = env.step(action)
-            buf_s.append(state)
+            buf_s.append(obs)
             buf_a.append(action)
             buf_r.append(reward)
 
