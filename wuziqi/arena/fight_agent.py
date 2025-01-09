@@ -50,3 +50,14 @@ class FightAgent:
 
         obs = torch.cat([cur_state, op_state, blank_state], dim=-1)
         return obs
+
+class RandomAgent:
+    def act(self, state):
+        acts = state['legal_actions']
+        true_indices = np.where(acts)[0]
+        # 如果没有 True，返回 None 或抛出异常
+        if len(true_indices) == 0:
+            return None  # 或者 raise ValueError("No True values in acts")
+        # 在这些索引中随机选择一个
+        random_index = np.random.choice(true_indices)
+        return random_index

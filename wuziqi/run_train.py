@@ -62,7 +62,8 @@ if __name__ == '__main__':
             'eps_min': 0,
             'device': 'cuda',
             'repeat': 3,
-        }
+        },
+        'checkpoint_path': './path_to_model/ppo_model_4890.pth',
     }
     game = GameState(board_size)
     policy = init_policy(**train_config)

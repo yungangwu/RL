@@ -1,6 +1,6 @@
 import random
 from game.wuziqi import GameState
-from arena.fight_agent import FightAgent
+from arena.fight_agent import FightAgent, RandomAgent
 
 
 MODEL_FILE_PATH = "./path_to_model/ppo_model_{version}.pth"
@@ -9,8 +9,16 @@ def evaluate(config, board_size, version1, version2, seed, num_epoch, device):
     # 创建游戏环境
     env = GameState(board_size)
     env.set_seed(seed=seed)
-    agent1 = FightAgent(config, checkpoint_path=MODEL_FILE_PATH.format(version=version1), seed=seed, device=device)
-    agent2 = FightAgent(config, checkpoint_path=MODEL_FILE_PATH.format(version=version2), seed=seed, device=device)
+
+    if version1 == 0:
+        agent1 = RandomAgent()
+        agent2 = FightAgent(config, checkpoint_path=MODEL_FILE_PATH.format(version=version2), seed=seed, device=device)
+    elif version2 == 0:
+        agent1 = FightAgent(config, checkpoint_path=MODEL_FILE_PATH.format(version=version1), seed=seed, device=device)
+        agent2 = RandomAgent()
+    else:
+        agent1 = FightAgent(config, checkpoint_path=MODEL_FILE_PATH.format(version=version1), seed=seed, device=device)
+        agent2 = FightAgent(config, checkpoint_path=MODEL_FILE_PATH.format(version=version2), seed=seed, device=device)
     agents = [agent1, agent2]
 
     # 进行num_games局游戏

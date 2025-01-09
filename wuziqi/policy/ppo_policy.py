@@ -106,6 +106,9 @@ class PPOPolicy(Policy):
         if self._learning_round % 5 == 0:
             self.save()
 
+        self.old_model.load_state_dict(self.model.state_dict())
+        self._eps = max(self._eps * self._eps_decay, self._eps_min)
+
         return {"loss": losses}  # 返回最后一个batch的loss
 
     def get_v(self, obs):
@@ -126,8 +129,6 @@ class PPOPolicy(Policy):
             masked_actions = actions * action_mask
 
             action = np.argmax(masked_actions)
-
-        self._eps = max(self._eps * self._eps_decay, self._eps_min)
 
         return action
 
@@ -178,9 +179,12 @@ class PPOPolicy(Policy):
 
 def init_policy(**kwargs):
     device = kwargs.get('device', 'cpu')
+    checkpoint = kwargs.get('checkpoint_path')
     policy_config = kwargs.get('policy', {})
     model = ACNet(**kwargs['net']).to(device)
     old_model = ACNet(**kwargs['net']).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=policy_config['lr'])
     ppo_policy = PPOPolicy(config=policy_config, model=model, old_model=old_model, optim=optim)
+    if checkpoint:
+        ppo_policy.load(checkpoint)
     return ppo_policy
