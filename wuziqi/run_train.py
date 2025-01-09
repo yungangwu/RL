@@ -47,7 +47,7 @@ def train(env: GameState, agent: Agent, replay_buffer: ReplayBuffer, num_epochs:
 if __name__ == '__main__':
     board_size = 15
     buffer_size = 10000
-    num_epochs = 10000
+    num_epochs = 100000
     train_config = {
         'device': 'cuda',
         'net': {
