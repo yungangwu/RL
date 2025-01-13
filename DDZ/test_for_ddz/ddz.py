@@ -50,7 +50,7 @@ class MuZeroConfig:
 
         ### Game
         self.observation_shape = (1,1,790)  # Dimensions of the model observation, must be 3D (channel, height, width). For a 1D array, please reshape it to (1, 1, length of array)
-        self.observation_shapes = [(1,1,790),(1,1,901),(1,1,901)] # The observation shapes of Multiplayers' game. 
+        self.observation_shapes = [(1,1,790),(1,1,901),(1,1,901)] # The observation shapes of Multiplayers' game.
         self.action_space = list(range(27472))  # Fixed list of all possible actions. You should only edit the length
         self.players = list(range(1))  # List of players. You should only edit the length
         self.stacked_observations = 0  # Number of previous observations and previous actions to add to the current observation
@@ -169,7 +169,7 @@ class Game(AbstractGame):
             print('set_seed------------')
             set_seed(seed)
         self.env = rlDdz(seed)
-    
+
     def set_agents(self,agents):
         self.env.set_agents(agents)
 
@@ -186,7 +186,7 @@ class Game(AbstractGame):
         observation, reward, done = self.env.step(action, player_id)
 
         return observation, reward, done
-    
+
     def to_play(self):
         return self.env.to_play()
 
@@ -217,7 +217,7 @@ class Game(AbstractGame):
         Properly close the game.
         """
         pass
-    
+
     def render(self):
         pass
 
@@ -235,7 +235,7 @@ class rlDdz():
     def legal_actions(self):
         player_id = self.env.get_player_id()
         state = self.env.get_state(player_id)
-        
+
         return list(state['legal_actions'].keys())
 
     def reset(self):
@@ -267,4 +267,3 @@ class rlDdz():
         # print('done-------',done)
 
         return obs, reward, done
-

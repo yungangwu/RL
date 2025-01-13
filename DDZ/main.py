@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 
-from env import DouDizhu
+from env.env import DouDizhu
 from typing import List
 from util import Encode, LSTMEncode
 

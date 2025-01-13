@@ -22,9 +22,6 @@ class DouDizhu:
         return self.get_next_state(landlord_id)
 
     def get_next_state(self, cur_player_idx):
-        '''
-
-        '''
         cur_player: Player = self.game.players[cur_player_idx]
         cur_hands = cur_player.hand_cards[:]
         last_move_type = self.game.last_move_type

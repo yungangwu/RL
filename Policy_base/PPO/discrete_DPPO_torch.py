@@ -52,12 +52,39 @@ class PPO(nn.Module):
 
 class PPOWrapper:
     def __init__(self) -> None:
-        self.device = DEVICE
+        # self.device = DEVICE
+        # print(f'device: {self.device}')
+        # self.pi = PPO().to(self.device)
+        # self.oldpi = PPO().to(self.device)
 
-        self.pi = PPO().to(self.device)
-        self.oldpi = PPO().to(self.device)
+        # self.optimizer_pi = optim.Adam(self.pi.parameters(), lr=A_LR)
+        # print('ppowrapper init')
 
+        if torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
+
+        print("Initializing PPOWrapper...")
+        # self.device = DEVICE
+        print(f"Device set to: {self.device}")
+
+        # Test PPO model
+        print("Initializing PPO pi...")
+        self.pi = PPO()
+        print("PPO pi initialized.")
+        self.pi = self.pi.to('cpu')
+        print("PPO pi moved to device.")
+
+        print("Initializing PPO oldpi...")
+        self.oldpi = PPO()
+        print("PPO oldpi initialized.")
+        self.oldpi = self.oldpi.to('cpu')
+        print("PPO oldpi moved to device.")
+
+        print("Initializing optimizer...")
         self.optimizer_pi = optim.Adam(self.pi.parameters(), lr=A_LR)
+        print("Optimizer initialized.")
 
     def update(self):
         global GLOBAL_UPDATE_COUNTER
@@ -108,6 +135,7 @@ class Worker:
 
     def work(self):
         global GLOBAL_EP, GLOBAL_RUNNING_R, GLOBAL_UPDATE_COUNTER
+        print('start work...')
         while GLOBAL_EP < EP_MAX:
             s = self.env.reset()
             ep_r = 0
@@ -152,11 +180,15 @@ class Worker:
 
 
 if __name__ == '__main__':
+    print(11111111111111)
     GLOBAL_PPO = PPOWrapper()
+    print(333333333)
     UPDATE_EVENT, ROLLING_EVENT = threading.Event(), threading.Event()
     UPDATE_EVENT.clear()            # not update now
     ROLLING_EVENT.set()             # start to roll out
     workers = [Worker(wid=i) for i in range(N_WORKER)]
+
+    print(222222222222)
 
     GLOBAL_UPDATE_COUNTER, GLOBAL_EP = 0, 0
     GLOBAL_RUNNING_R = []
@@ -173,6 +205,7 @@ if __name__ == '__main__':
     for t in threads:
         t.join()
 
+    print('threads start')
     # plot reward change and test
     plt.plot(np.arange(len(GLOBAL_RUNNING_R)), GLOBAL_RUNNING_R)
     plt.xlabel('Episode'); plt.ylabel('Moving reward'); plt.show()
