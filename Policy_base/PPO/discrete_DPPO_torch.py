@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import gym
 import threading
 import queue
+from threading import Lock
 
-
+GLOBAL_EP_LOCK = Lock()
 EP_MAX = 1000
 EP_LEN = 200
 N_WORKER = 4                # parallel workers
@@ -52,39 +53,10 @@ class PPO(nn.Module):
 
 class PPOWrapper:
     def __init__(self) -> None:
-        # self.device = DEVICE
-        # print(f'device: {self.device}')
-        # self.pi = PPO().to(self.device)
-        # self.oldpi = PPO().to(self.device)
-
-        # self.optimizer_pi = optim.Adam(self.pi.parameters(), lr=A_LR)
-        # print('ppowrapper init')
-
-        if torch.cuda.is_available():
-            self.device = 'cuda'
-        else:
-            self.device = 'cpu'
-
-        print("Initializing PPOWrapper...")
-        # self.device = DEVICE
-        print(f"Device set to: {self.device}")
-
-        # Test PPO model
-        print("Initializing PPO pi...")
-        self.pi = PPO()
-        print("PPO pi initialized.")
-        self.pi = self.pi.to('cpu')
-        print("PPO pi moved to device.")
-
-        print("Initializing PPO oldpi...")
-        self.oldpi = PPO()
-        print("PPO oldpi initialized.")
-        self.oldpi = self.oldpi.to('cpu')
-        print("PPO oldpi moved to device.")
-
-        print("Initializing optimizer...")
+        self.device = DEVICE
+        self.pi = PPO().to(self.device)
+        self.oldpi = PPO().to(self.device)
         self.optimizer_pi = optim.Adam(self.pi.parameters(), lr=A_LR)
-        print("Optimizer initialized.")
 
     def update(self):
         global GLOBAL_UPDATE_COUNTER
@@ -123,6 +95,8 @@ class PPOWrapper:
                 UPDATE_EVENT.clear()        # updating finished
                 GLOBAL_UPDATE_COUNTER = 0   # reset counter
                 ROLLING_EVENT.set()         # set roll-out available
+            else:
+                break
 
     def update_oldpi(self,):
         self.oldpi.load_state_dict(self.pi.state_dict())
@@ -137,7 +111,7 @@ class Worker:
         global GLOBAL_EP, GLOBAL_RUNNING_R, GLOBAL_UPDATE_COUNTER
         print('start work...')
         while GLOBAL_EP < EP_MAX:
-            s = self.env.reset()
+            s = self.env.reset()[0]
             ep_r = 0
             buffer_s, buffer_a, buffer_r = [], [], []
             for t in range(EP_LEN):
@@ -145,7 +119,7 @@ class Worker:
                     ROLLING_EVENT.wait()                        # wait until PPO is updated
                     buffer_s, buffer_a, buffer_r = [], [], []   # clear history buffer, use new policy to collect data
                 a = self.ppo_wrapper.pi.choose_action(s)
-                s_, r, done, _ = self.env.step([a])
+                s_, r, done, _, _ = self.env.step([a])
                 buffer_s.append(s)
                 buffer_a.append([a])
                 buffer_r.append((r + 8) / 8)                    # normalize reward, find to be useful
@@ -161,7 +135,6 @@ class Worker:
                         discounted_r.append(v_s_)
                     discounted_r.reverse()
 
-                    print('discounted_r', discounted_r)
                     bs, ba, br = np.vstack(buffer_s), np.vstack(buffer_a), np.array(discounted_r)[:, np.newaxis]
                     buffer_s, buffer_a, buffer_r = [], [], []
                     QUEUE.put(np.hstack((bs, ba, br)))          # put data in the queue
@@ -173,22 +146,20 @@ class Worker:
                         break
 
             # record reward changes, plot later
-            if len(GLOBAL_RUNNING_R) == 0: GLOBAL_RUNNING_R.append(ep_r)
-            else: GLOBAL_RUNNING_R.append(GLOBAL_RUNNING_R[-1]*0.9+ep_r*0.1)
+            if len(GLOBAL_RUNNING_R) == 0:
+                GLOBAL_RUNNING_R.append(ep_r)
+            else:
+                GLOBAL_RUNNING_R.append(GLOBAL_RUNNING_R[-1]*0.9+ep_r*0.1)
             GLOBAL_EP += 1
             print('{0:.1f}%'.format(GLOBAL_EP/EP_MAX*100), '|W%i' % self.wid,  '|Ep_r: %.2f' % ep_r)
 
 
 if __name__ == '__main__':
-    print(11111111111111)
     GLOBAL_PPO = PPOWrapper()
-    print(333333333)
     UPDATE_EVENT, ROLLING_EVENT = threading.Event(), threading.Event()
     UPDATE_EVENT.clear()            # not update now
     ROLLING_EVENT.set()             # start to roll out
     workers = [Worker(wid=i) for i in range(N_WORKER)]
-
-    print(222222222222)
 
     GLOBAL_UPDATE_COUNTER, GLOBAL_EP = 0, 0
     GLOBAL_RUNNING_R = []
@@ -205,7 +176,8 @@ if __name__ == '__main__':
     for t in threads:
         t.join()
 
-    print('threads start')
     # plot reward change and test
     plt.plot(np.arange(len(GLOBAL_RUNNING_R)), GLOBAL_RUNNING_R)
-    plt.xlabel('Episode'); plt.ylabel('Moving reward'); plt.show()
+    plt.xlabel('Episode')
+    plt.ylabel('Moving reward')
+    plt.savefig('./PPO/train_loss.png')

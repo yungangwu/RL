@@ -8,7 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from env_util import Game, Player
+from env.env_util import Game, Player
 from util import MoveType
 
 
@@ -37,9 +37,19 @@ class DouDizhu:
 
         landlord_id = self.game.landlord_id
 
-        return (cur_hands, last_move_type, last_move, up_player_cards_num,
-                down_player_cards_num, landlord_id, self.bomb_num,
-                self.game.play_records.desk_record[:], cur_player_idx)
+        res = {
+            'cur_hands': cur_hands,
+            'last_move_type': last_move_type,
+            'last_move': last_move,
+            'up_player_cards_num': up_player_cards_num,
+            'down_player_cards_num': down_player_cards_num,
+            'landlord_id': landlord_id,
+            'bomb_num': self.bomb_num,
+            'desk_record': self.game.play_records.desk_record[:],
+            'cur_player_idx': cur_player_idx,
+        }
+
+        return res
 
     def step(self, cur_player: int, action):
         cur_game_player: Player = self.game.players[cur_player]

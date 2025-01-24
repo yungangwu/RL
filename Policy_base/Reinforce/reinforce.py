@@ -39,7 +39,7 @@ for i_episode in range(3000):
                 running_reward = ep_rs_sum
             else:
                 running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
-            
+
             if running_reward > DISPLAY_REWARD_THRESHOLD: RENDER = True
             print("episode:", i_episode, " reward:", int(running_reward))
 
@@ -50,6 +50,6 @@ for i_episode in range(3000):
                 plt.xlabel('episode steps')
                 plt.ylabel('normalized state-action value')
                 plt.show()
-            
+
             break
         observation = observation_

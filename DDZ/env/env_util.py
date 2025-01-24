@@ -162,6 +162,7 @@ class Cards:
         return cards
 
 
+
 class PlayRecords:
     def __init__(self) -> None:
         self.player1_hands = []
